@@ -14,7 +14,7 @@ from model import Autoencoder, TestingParameters
 from helper_utils import get_dataloaders, embed_imgs
 
 
-NUM_WORKERS = 0
+NUM_WORKERS = 8
 warnings.filterwarnings('ignore')
 logging.getLogger("pytorch_lightning").setLevel(logging.WARNING)    # disable logs from pytorch lightning
 

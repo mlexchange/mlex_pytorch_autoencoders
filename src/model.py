@@ -245,7 +245,7 @@ class Autoencoder(pl.LightningModule):
         The forward function takes in an image and returns the reconstructed image
         during the prediction step
         """
-        x, _ = batch  # We do not need the labels
+        x, _ = batch
         batch_hat = self.forward(x)
         return batch_hat
 
@@ -253,9 +253,9 @@ class Autoencoder(pl.LightningModule):
         """
         Given a batch of images, this function returns the reconstruction loss (MSE in our case)
         """
-        x, _ = batch  # We do not need the labels
+        x, y = batch
         x_hat = self.forward(x)
-        loss = self.criterion(x_hat, x)
+        loss = self.criterion(x_hat, y)
         return loss
 
     def configure_optimizers(self):
@@ -297,15 +297,19 @@ class Autoencoder(pl.LightningModule):
 
 
 class CustomDirectoryDataset(Dataset):
-    def __init__(self, data, transform):
-        self.transform = transform
+    def __init__(self, data, target_size, augmentation):
+        augmentation.insert(0, transforms.Resize(target_size))
+        self.data_augmentation = transforms.Compose(augmentation)
         self.data = data
-        self.simple_transform = transforms.ToTensor()
+        self.simple_transform = transforms.Compose([
+            transforms.Resize(target_size),
+            transforms.ToTensor()
+        ])
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
         image = Image.open(self.data[idx]).convert("RGB")
-        tensor_image = self.transform(image)
+        tensor_image = self.data_augmentation(image)
         return (tensor_image, self.simple_transform(image))

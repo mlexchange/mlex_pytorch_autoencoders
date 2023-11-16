@@ -62,18 +62,17 @@ def get_dataloaders(data, batch_size, num_workers, shuffle=False, target_size=No
         data_transform.append(transforms.RandomHorizontalFlip(p=horz_flip_prob))
     if vert_flip_prob>0:
         data_transform.append(transforms.RandomVerticalFlip(p=vert_flip_prob))
-    # Resize if needed
-    if target_size:
-        data_transform.append(transforms.Resize(target_size))
     data_transform.append(transforms.ToTensor())
     # Load data information
     data_info = pd.read_parquet(data, engine='pyarrow')
     if 'local_uri' in data_info:
         dataset = CustomDirectoryDataset(data_info['local_uri'],
-                                         transforms.Compose(data_transform))
+                                         target_size,
+                                         data_transform)
     else:
         dataset = CustomDirectoryDataset(data_info['uri'],
-                                         transforms.Compose(data_transform))
+                                         target_size,
+                                         data_transform)
     (input_channels, width, height) = dataset[0][0].shape
     datasets_uris = data_info['uri']
     if val_pct:
