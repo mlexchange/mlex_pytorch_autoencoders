@@ -53,7 +53,8 @@ if __name__ == '__main__':
             train_parameters.contrast,
             train_parameters.saturation,
             train_parameters.hue,
-            train_parameters.val_pct
+            train_parameters.val_pct,
+            train_parameters.augm_invariant
         )
 
     trainer = pl.Trainer(default_root_dir=args.output_dir,
@@ -72,6 +73,8 @@ if __name__ == '__main__':
                         optimizer=train_parameters.optimizer,
                         criterion=train_parameters.criterion,
                         learning_rate=train_parameters.learning_rate,
+                        step_size=train_parameters.step_size,
+                        gamma=train_parameters.gamma,
                         width=width,
                         height=height)
 
