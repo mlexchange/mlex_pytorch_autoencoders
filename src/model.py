@@ -226,6 +226,7 @@ class Autoencoder(pl.LightningModule):
         self.step_size = step_size
         self.gamma = gamma
         self.criterion = getattr(nn, criterion.value)
+        self.criterion = criterion()
         self.train_loss = 0
         self.validation_loss = 0
         self.train_loss_summary = []

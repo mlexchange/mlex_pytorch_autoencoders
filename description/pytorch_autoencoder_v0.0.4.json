@@ -11,6 +11,22 @@
     "description": "PyTorch customizable autoencoders for latent space exploration and/or data compression.",
     "gui_parameters": [
         {
+            "type": "int",
+            "name": "target_width",
+            "title": "Target Width",
+            "param_key": "target_width",
+            "value": 32,
+            "comp_group": "train_model"
+        },
+        {
+            "type": "int",
+            "name": "target_height",
+            "title": "Target Height",
+            "param_key": "target_height",
+            "value": 32,
+            "comp_group": "train_model"
+        },
+        {
             "type": "float",
             "name": "horz_flip_prob",
             "title": "Data Augmentation: Probability of Horizontal Flip",
@@ -56,6 +72,24 @@
             "title": "Data Augmentation: Hue Factor",
             "param_key": "hue",
             "value": 0,
+            "comp_group": "train_model"
+        },
+        {
+            "type": "radio",
+            "name": "augm_invariant",
+            "title": "Augmentation invariant",
+            "param_key": "augm_invariant",
+            "value": true,
+            "options": [
+                {
+                    "label": "True",
+                    "value": true
+                },
+                {
+                    "label": "False",
+                    "value": false
+                }
+            ],
             "comp_group": "train_model"
         },
         {
@@ -376,6 +410,24 @@
             "title": "Data Augmentation: Hue Factor",
             "param_key": "hue",
             "value": 0,
+            "comp_group": "tune_model"
+        },
+        {
+            "type": "radio",
+            "name": "augm_invariant",
+            "title": "Augmentation invariant",
+            "param_key": "augm_invariant",
+            "value": true,
+            "options": [
+                {
+                    "label": "True",
+                    "value": true
+                },
+                {
+                    "label": "False",
+                    "value": false
+                }
+            ],
             "comp_group": "tune_model"
         },
         {

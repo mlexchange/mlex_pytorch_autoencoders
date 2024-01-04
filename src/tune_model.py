@@ -6,6 +6,8 @@ import warnings
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 import torch
+import torch.optim as optim
+import torch.nn as nn
 
 from model import Autoencoder, TuningParameters
 from helper_utils import get_dataloaders
@@ -68,8 +70,10 @@ if __name__ == '__main__':
                                                     save_weights_only=True)])
 
     model = Autoencoder.load_from_checkpoint(args.model_dir + '/last.ckpt')
-    model.optimizer = tune_parameters.optimizer
-    model.criterion = tune_parameters.criterion
+    modeloptimizer = getattr(optim, tune_parameters.optimizer.value)
+    criterion = getattr(nn, tune_parameters.criterion.value)
+    model.criterion = criterion()
+
     model.learning_rate = tune_parameters.learning_rate
     model.gamma = tune_parameters.gamma
     model.step_size = tune_parameters.step_size
