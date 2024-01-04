@@ -67,21 +67,27 @@ class DataAugmentation(BaseModel):
                                  from [-hue, hue]. Should have 0<= hue <= 0.5 or -0.5 <= min <= max \
                                  <= 0.5. To jitter hue, the pixel values of the input image has to \
                                  be non-negative for conversion to HSV space.')
+    augm_invariant: Optional[bool] = Field(description='Ground truth changes (or not) according to \
+                                           selected transformations')
     data_key: Optional[str] = Field(description='keyword for data in NPZ')
 
-
-class TrainingParameters(DataAugmentation):
+class TuningParameters(DataAugmentation):
     shuffle: bool = Field(description='shuffle data')
     batch_size: int = Field(description='batch size')
     val_pct: int = Field(description='validation percentage')
-    latent_dim: int = Field(description='latent space dimension')
-    depth: int = Field(description='Network depth')
-    base_channel_size: int = Field(description='number of base channels')
     num_epochs: int = Field(description='number of epochs')
     optimizer: Optimizer
     criterion: Criterion
+    gamma: float = Field(description='Multiplicative factor of learning rate decay')
+    step_size: int = Field(description='Period of learning rate decay')
     learning_rate: float = Field(description='learning rate')
     seed: Optional[int] = Field(description='random seed')
+
+
+class TrainingParameters(TuningParameters):
+    latent_dim: int = Field(description='latent space dimension')
+    depth: int = Field(description='Network depth')
+    base_channel_size: int = Field(description='number of base channels')
 
 
 class EvaluationParameters(TrainingParameters):
@@ -177,9 +183,9 @@ class Decoder(nn.Module):
                 auto.append((f'tconv{2 * layer}',
                              nn.ConvTranspose2d(c_hid, num_input_channels, kernel_size=3, 
                                                 output_padding=1, padding=1, stride=2)))
-                auto.append(('tan',
-                             nn.Tanh()))  # The input images is scaled between -1 and 1, 
-                                          # hence the output has to be bounded as well
+                # auto.append(('tan',
+                #              nn.Tanh()))  # The input images is scaled between -1 and 1, 
+                #                           # hence the output has to be bounded as well
             else:
                 auto.append((f'tconv{2 * layer}',
                              nn.ConvTranspose2d((2 ** layer) * c_hid, (2 ** (layer - 1)) * c_hid, 
@@ -210,16 +216,16 @@ class Autoencoder(pl.LightningModule):
                  encoder_class: object = Encoder,
                  decoder_class: object = Decoder,
                  learning_rate: float = 1e-3,
+                 step_size: int = 30,
+                 gamma: float = 0.1,
                  width: int = 32,
                  height: int = 32):
         super().__init__()
         self.optimizer = getattr(optim, optimizer.value)
         self.learning_rate = learning_rate
-        if isinstance(criterion, Enum):
-            criterion = getattr(nn, criterion.value)
-            self.criterion = criterion()
-        else:
-            self.criterion = criterion
+        self.step_size = step_size
+        self.gamma = gamma
+        self.criterion = getattr(nn, criterion.value)
         self.train_loss = 0
         self.validation_loss = 0
         self.train_loss_summary = []
@@ -260,7 +266,8 @@ class Autoencoder(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = self.optimizer(self.parameters(), lr=self.learning_rate)
-        return {"optimizer": optimizer}
+        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=self.step_size, gamma=self.gamma)
+        return {"optimizer": optimizer, "lr_scheduler": scheduler}
 
     def training_step(self, batch, batch_idx):
         loss = self._get_reconstruction_loss(batch)
@@ -297,10 +304,11 @@ class Autoencoder(pl.LightningModule):
 
 
 class CustomDirectoryDataset(Dataset):
-    def __init__(self, data, target_size, augmentation):
+    def __init__(self, data, target_size, augmentation, augm_invariant):
         augmentation.insert(0, transforms.Resize(target_size))
         self.data_augmentation = transforms.Compose(augmentation)
         self.data = data
+        self.augm_invariant = augm_invariant
         self.simple_transform = transforms.Compose([
             transforms.Resize(target_size),
             transforms.ToTensor()
@@ -312,4 +320,7 @@ class CustomDirectoryDataset(Dataset):
     def __getitem__(self, idx):
         image = Image.open(self.data[idx]).convert("RGB")
         tensor_image = self.data_augmentation(image)
-        return (tensor_image, self.simple_transform(image))
+        if self.augm_invariant:
+            return (tensor_image, tensor_image)
+        else:
+            return (tensor_image, self.simple_transform(image))
