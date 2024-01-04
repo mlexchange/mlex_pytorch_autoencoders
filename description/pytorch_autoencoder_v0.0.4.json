@@ -1,0 +1,638 @@
+{
+    "content_type": "model",
+    "name": "pytorch_autoencoder",
+    "version": "0.0.4",
+    "type": "unsupervised",
+    "owner": "mlexchange team",
+    "uri": "ghcr.io/mlexchange/mlex_pytorch_autoencoders:main",
+    "application": [
+        "data_clinic"
+    ],
+    "description": "PyTorch customizable autoencoders for latent space exploration and/or data compression.",
+    "gui_parameters": [
+        {
+            "type": "float",
+            "name": "horz_flip_prob",
+            "title": "Data Augmentation: Probability of Horizontal Flip",
+            "param_key": "horz_flip_prob",
+            "value": 0,
+            "comp_group": "train_model"
+        },
+        {
+            "type": "float",
+            "name": "vert_flip_prob",
+            "title": "Data Augmentation: Probability of Vertical Flip",
+            "param_key": "vert_flip_prob",
+            "value": 0,
+            "comp_group": "train_model"
+        },
+        {
+            "type": "float",
+            "name": "brightness",
+            "title": "Data Augmentation: Brightness Factor",
+            "param_key": "brightness",
+            "value": 0,
+            "comp_group": "train_model"
+        },
+        {
+            "type": "float",
+            "name": "contrast",
+            "title": "Data Augmentation: Contrast Factor",
+            "param_key": "contrast",
+            "value": 0,
+            "comp_group": "train_model"
+        },
+        {
+            "type": "float",
+            "name": "saturation",
+            "title": "Data Augmentation: Saturation Factor",
+            "param_key": "saturation",
+            "value": 0,
+            "comp_group": "train_model"
+        },
+        {
+            "type": "float",
+            "name": "hue",
+            "title": "Data Augmentation: Hue Factor",
+            "param_key": "hue",
+            "value": 0,
+            "comp_group": "train_model"
+        },
+        {
+            "type": "radio",
+            "name": "shuffle",
+            "title": "Shuffle Data",
+            "param_key": "shuffle",
+            "value": true,
+            "options": [
+                {
+                    "label": "True",
+                    "value": true
+                },
+                {
+                    "label": "False",
+                    "value": false
+                }
+            ],
+            "comp_group": "train_model"
+        },
+        {
+            "type": "slider",
+            "name": "batch_size",
+            "title": "Batch Size",
+            "param_key": "batch_size",
+            "min": 16,
+            "max": 128,
+            "step": 16,
+            "value": 32,
+            "marks": {
+                "16": "16",
+                "128": "128"
+            },
+            "comp_group": "train_model"
+        },
+        {
+            "type": "slider",
+            "name": "val_pct",
+            "title": "Validation Percentage",
+            "param_key": "val_pct",
+            "min": 0,
+            "max": 100,
+            "step": 5,
+            "value": 20,
+            "marks": {
+                "0": "0",
+                "100": "100"
+            },
+            "comp_group": "train_model"
+        },
+        {
+            "type": "slider",
+            "name": "num_epochs",
+            "title": "Number of epochs",
+            "param_key": "num_epochs",
+            "min": 1,
+            "step": 1,
+            "max": 1000,
+            "value": 30,
+            "marks": {
+                "1": "1",
+                "1000": "1000"
+            },
+            "comp_group": "train_model"
+        },
+        {
+            "type": "dropdown",
+            "name": "optimizer",
+            "title": "Optimizer",
+            "param_key": "optimizer",
+            "value": "Adam",
+            "options": [
+                {
+                    "label": "Adadelta",
+                    "value": "Adadelta"
+                },
+                {
+                    "label": "Adagrad",
+                    "value": "Adagrad"
+                },
+                {
+                    "label": "Adam",
+                    "value": "Adam"
+                },
+                {
+                    "label": "SparseAdam",
+                    "value": "SparseAdam"
+                },
+                {
+                    "label": "Adamax",
+                    "value": "Adamax"
+                },
+                {
+                    "label": "ASGD",
+                    "value": "ASGD"
+                },
+                {
+                    "label": "SGD",
+                    "value": "SGD"
+                },
+                {
+                    "label": "Rprop",
+                    "value": "Rprop"
+                },
+                {
+                    "label": "RMSprop",
+                    "value": "RMSprop"
+                },
+                {
+                    "label": "LBFGS",
+                    "value": "LBFGS"
+                }
+            ],
+            "comp_group": "train_model"
+        },
+        {
+            "type": "dropdown",
+            "name": "criterion",
+            "title": "Criterion",
+            "param_key": "criterion",
+            "value": "MSELoss",
+            "options": [
+                {
+                    "label": "L1Loss",
+                    "value": "L1Loss"
+                },
+                {
+                    "label": "MSELoss",
+                    "value": "MSELoss"
+                },
+                {
+                    "label": "CrossEntropyLoss",
+                    "value": "CrossEntropyLoss"
+                },
+                {
+                    "label": "NLLLoss",
+                    "value": "NLLLoss"
+                },
+                {
+                    "label": "PoissonNLLLoss",
+                    "value": "PoissonNLLLoss"
+                },
+                {
+                    "label": "KLDivLoss",
+                    "value": "KLDivLoss"
+                },
+                {
+                    "label": "BCELoss",
+                    "value": "BCELoss"
+                },
+                {
+                    "label": "BCEWithLogitsLoss",
+                    "value": "BCEWithLogitsLoss"
+                },
+                {
+                    "label": "MarginRankingLoss",
+                    "value": "MarginRankingLoss"
+                },
+                {
+                    "label": "HingeEmbeddingLoss",
+                    "value": "HingeEmbeddingLoss"
+                },
+                {
+                    "label": "MultiLabelMarginLoss",
+                    "value": "MultiLabelMarginLoss"
+                },
+                {
+                    "label": "SmoothL1Loss",
+                    "value": "SmoothL1Loss"
+                },
+                {
+                    "label": "SoftMarginLoss",
+                    "value": "SoftMarginLoss"
+                },
+                {
+                    "label": "MutiLabelSoftMarginLoss",
+                    "value": "MutiLabelSoftMarginLoss"
+                },
+                {
+                    "label": "CosineEmbeddingLoss",
+                    "value": "CosineEmbeddingLoss"
+                },
+                {
+                    "label": "MultiMarginLoss",
+                    "value": "MultiMarginLoss"
+                },
+                {
+                    "label": "TripletMarginLoss",
+                    "value": "TripletMarginLoss"
+                },
+                {
+                    "label": "TripletMarginWithDistanceLoss",
+                    "value": "TripletMarginWithDistanceLoss"
+                }
+            ],
+            "comp_group": "train_model"
+        },
+        {
+            "type": "float",
+            "name": "gamma",
+            "title": "Scheduler: Gamma",
+            "param_key": "gamma",
+            "value": 0.1,
+            "comp_group": "train_model"
+        },
+        {
+            "type": "int",
+            "name": "step_size",
+            "title": "Scheduler: Step Size",
+            "param_key": "step_size",
+            "value": 30,
+            "comp_group": "train_model"
+        },
+        {
+            "type": "float",
+            "name": "learning_rate",
+            "title": "Learning Rate",
+            "param_key": "learning_rate",
+            "value": 0.001,
+            "comp_group": "train_model"
+        },
+        {
+            "type": "int",
+            "name": "seed",
+            "title": "Seed",
+            "param_key": "seed",
+            "value": 0,
+            "comp_group": "train_model"
+        },
+        {
+            "type": "slider",
+            "name": "latent_dim",
+            "title": "Latent Dimension",
+            "param_key": "latent_dim",
+            "min": 0,
+            "max": 1000,
+            "step": 1,
+            "value": 32,
+            "marks": {
+                "0": "0",
+                "1000": "1000"
+            },
+            "comp_group": "train_model"
+        },
+        {
+            "type": "slider",
+            "name": "base_channel_size",
+            "title": "Base Channel Size",
+            "param_key": "base_channel_size",
+            "min": 0,
+            "max": 1000,
+            "step": 1,
+            "value": 32,
+            "marks": {
+                "0": "0",
+                "1000": "1000"
+            },
+            "comp_group": "train_model"
+        },
+        {
+            "type": "slider",
+            "name": "depth",
+            "title": "Depth",
+            "param_key": "depth",
+            "min": 2,
+            "max": 8,
+            "step": 1,
+            "value": 3,
+            "marks": {
+                "2": "2",
+                "8": "8"
+            },
+            "comp_group": "train_model"
+        },
+        {
+            "type": "float",
+            "name": "horz_flip_prob",
+            "title": "Data Augmentation: Probability of Horizontal Flip",
+            "param_key": "horz_flip_prob",
+            "value": 0,
+            "comp_group": "tune_model"
+        },
+        {
+            "type": "float",
+            "name": "vert_flip_prob",
+            "title": "Data Augmentation: Probability of Vertical Flip",
+            "param_key": "vert_flip_prob",
+            "value": 0,
+            "comp_group": "tune_model"
+        },
+        {
+            "type": "float",
+            "name": "brightness",
+            "title": "Data Augmentation: Brightness Factor",
+            "param_key": "brightness",
+            "value": 0,
+            "comp_group": "tune_model"
+        },
+        {
+            "type": "float",
+            "name": "contrast",
+            "title": "Data Augmentation: Contrast Factor",
+            "param_key": "contrast",
+            "value": 0,
+            "comp_group": "tune_model"
+        },
+        {
+            "type": "float",
+            "name": "saturation",
+            "title": "Data Augmentation: Saturation Factor",
+            "param_key": "saturation",
+            "value": 0,
+            "comp_group": "tune_model"
+        },
+        {
+            "type": "float",
+            "name": "hue",
+            "title": "Data Augmentation: Hue Factor",
+            "param_key": "hue",
+            "value": 0,
+            "comp_group": "tune_model"
+        },
+        {
+            "type": "radio",
+            "name": "shuffle",
+            "title": "Shuffle Data",
+            "param_key": "shuffle",
+            "value": true,
+            "options": [
+                {
+                    "label": "True",
+                    "value": true
+                },
+                {
+                    "label": "False",
+                    "value": false
+                }
+            ],
+            "comp_group": "tune_model"
+        },
+        {
+            "type": "slider",
+            "name": "batch_size",
+            "title": "Batch Size",
+            "param_key": "batch_size",
+            "min": 16,
+            "max": 128,
+            "step": 16,
+            "value": 32,
+            "marks": {
+                "16": "16",
+                "128": "128"
+            },
+            "comp_group": "tune_model"
+        },
+        {
+            "type": "slider",
+            "name": "val_pct",
+            "title": "Validation Percentage",
+            "param_key": "val_pct",
+            "min": 0,
+            "max": 100,
+            "step": 5,
+            "value": 20,
+            "marks": {
+                "0": "0",
+                "100": "100"
+            },
+            "comp_group": "tune_model"
+        },
+        {
+            "type": "slider",
+            "name": "num_epochs",
+            "title": "Number of epochs",
+            "param_key": "num_epochs",
+            "min": 1,
+            "step": 1,
+            "max": 1000,
+            "value": 30,
+            "marks": {
+                "1": "1",
+                "1000": "1000"
+            },
+            "comp_group": "tune_model"
+        },
+        {
+            "type": "dropdown",
+            "name": "optimizer",
+            "title": "Optimizer",
+            "param_key": "optimizer",
+            "value": "Adam",
+            "options": [
+                {
+                    "label": "Adadelta",
+                    "value": "Adadelta"
+                },
+                {
+                    "label": "Adagrad",
+                    "value": "Adagrad"
+                },
+                {
+                    "label": "Adam",
+                    "value": "Adam"
+                },
+                {
+                    "label": "SparseAdam",
+                    "value": "SparseAdam"
+                },
+                {
+                    "label": "Adamax",
+                    "value": "Adamax"
+                },
+                {
+                    "label": "ASGD",
+                    "value": "ASGD"
+                },
+                {
+                    "label": "SGD",
+                    "value": "SGD"
+                },
+                {
+                    "label": "Rprop",
+                    "value": "Rprop"
+                },
+                {
+                    "label": "RMSprop",
+                    "value": "RMSprop"
+                },
+                {
+                    "label": "LBFGS",
+                    "value": "LBFGS"
+                }
+            ],
+            "comp_group": "tune_model"
+        },
+        {
+            "type": "dropdown",
+            "name": "criterion",
+            "title": "Criterion",
+            "param_key": "criterion",
+            "value": "MSELoss",
+            "options": [
+                {
+                    "label": "L1Loss",
+                    "value": "L1Loss"
+                },
+                {
+                    "label": "MSELoss",
+                    "value": "MSELoss"
+                },
+                {
+                    "label": "CrossEntropyLoss",
+                    "value": "CrossEntropyLoss"
+                },
+                {
+                    "label": "NLLLoss",
+                    "value": "NLLLoss"
+                },
+                {
+                    "label": "PoissonNLLLoss",
+                    "value": "PoissonNLLLoss"
+                },
+                {
+                    "label": "KLDivLoss",
+                    "value": "KLDivLoss"
+                },
+                {
+                    "label": "BCELoss",
+                    "value": "BCELoss"
+                },
+                {
+                    "label": "BCEWithLogitsLoss",
+                    "value": "BCEWithLogitsLoss"
+                },
+                {
+                    "label": "MarginRankingLoss",
+                    "value": "MarginRankingLoss"
+                },
+                {
+                    "label": "HingeEmbeddingLoss",
+                    "value": "HingeEmbeddingLoss"
+                },
+                {
+                    "label": "MultiLabelMarginLoss",
+                    "value": "MultiLabelMarginLoss"
+                },
+                {
+                    "label": "SmoothL1Loss",
+                    "value": "SmoothL1Loss"
+                },
+                {
+                    "label": "SoftMarginLoss",
+                    "value": "SoftMarginLoss"
+                },
+                {
+                    "label": "MutiLabelSoftMarginLoss",
+                    "value": "MutiLabelSoftMarginLoss"
+                },
+                {
+                    "label": "CosineEmbeddingLoss",
+                    "value": "CosineEmbeddingLoss"
+                },
+                {
+                    "label": "MultiMarginLoss",
+                    "value": "MultiMarginLoss"
+                },
+                {
+                    "label": "TripletMarginLoss",
+                    "value": "TripletMarginLoss"
+                },
+                {
+                    "label": "TripletMarginWithDistanceLoss",
+                    "value": "TripletMarginWithDistanceLoss"
+                }
+            ],
+            "comp_group": "tune_model"
+        },
+        {
+            "type": "float",
+            "name": "gamma",
+            "title": "Scheduler: Gamma",
+            "param_key": "gamma",
+            "value": 0.1,
+            "comp_group": "tune_model"
+        },
+        {
+            "type": "int",
+            "name": "step_size",
+            "title": "Scheduler: Step Size",
+            "param_key": "step_size",
+            "value": 30,
+            "comp_group": "tune_model"
+        },
+        {
+            "type": "float",
+            "name": "learning_rate",
+            "title": "Learning Rate",
+            "param_key": "learning_rate",
+            "value": 0.001,
+            "comp_group": "tune_model"
+        },
+        {
+            "type": "int",
+            "name": "seed",
+            "title": "Seed",
+            "param_key": "seed",
+            "value": 0,
+            "comp_group": "tune_model"
+        },
+        {
+            "type": "slider",
+            "name": "batch_size",
+            "title": "Batch Size",
+            "param_key": "batch_size",
+            "min": 16,
+            "max": 128,
+            "step": 16,
+            "value": 32,
+            "marks": {
+                "16": "16",
+                "128": "128"
+            },
+            "comp_group": "prediction_model"
+        },
+        {
+            "type": "int",
+            "name": "seed",
+            "title": "Seed",
+            "param_key": "seed",
+            "value": 0,
+            "comp_group": "prediction_model"
+        }
+    ],
+    "cmd": [
+        "python3 src/train_model.py",
+        "python3 src/predict_model.py",
+        "python3 src/tune_model.py"
+    ],
+    "public": false
+}
