@@ -64,8 +64,19 @@ if __name__ == '__main__':
     test_result = einops.rearrange(test_result, 'n c x y -> n x y c')
     test_result = test_result.cpu().detach().numpy()
 
+    # Min-max normalize reconstructed images
+    test_result = (test_result - np.min(test_result)) / (np.max(test_result) - np.min(test_result))
+
     for indx, uri in enumerate(datasets_uris):
-        filename = uri.split('/')[-1]
-        im = Image.fromarray((((test_result[indx]-np.min(test_result[indx])) ) * 255)\
-                                 .astype(np.uint8)).convert('L')
+        # Get filename without path and extension
+        filename = uri.split('/')[-1].split('.')[0]
+
+        # Define color mode according to number of channels in input images
+        if temp_channels == 3:
+            colormode = 'RGB'
+        else:
+            colormode = 'L'
+        
+        # Save reconstructed images
+        im = Image.fromarray((test_result[indx] * 255).astype(np.uint8)).convert(colormode)
         im.save(f'{args.output_dir}/reconstructed_{filename}.jpg')
