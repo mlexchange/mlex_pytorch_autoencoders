@@ -14,7 +14,7 @@ from helper_utils import get_dataloaders
 
 
 SEED = 0
-NUM_WORKERS = 2
+NUM_WORKERS = 0
 warnings.filterwarnings('ignore')
 logging.getLogger("pytorch_lightning").setLevel(logging.WARNING)    # disable logs from pytorch lightning
 
