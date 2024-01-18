@@ -70,7 +70,7 @@ if __name__ == '__main__':
                                                     save_weights_only=True)])
 
     model = Autoencoder.load_from_checkpoint(args.model_dir + '/last.ckpt')
-    modeloptimizer = getattr(optim, tune_parameters.optimizer.value)
+    model.optimizer = getattr(optim, tune_parameters.optimizer.value)
     criterion = getattr(nn, tune_parameters.criterion.value)
     model.criterion = criterion()
 
