@@ -2,6 +2,7 @@ import argparse, os
 import json
 import einops
 import logging
+import multiprocessing
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -14,7 +15,14 @@ from model import Autoencoder, TestingParameters
 from helper_utils import get_dataloaders, embed_imgs
 
 
-NUM_WORKERS = 2
+num_cpus = multiprocessing.cpu_count()
+if num_cpus>6:
+    NUM_WORKERS = round(num_cpus/6)
+else:
+    NUM_WORKERS = num_cpus
+if NUM_WORKERS % 2 != 0:
+    NUM_WORKERS -= 1
+
 warnings.filterwarnings('ignore')
 logging.getLogger("pytorch_lightning").setLevel(logging.WARNING)    # disable logs from pytorch lightning
 
@@ -46,7 +54,9 @@ if __name__ == '__main__':
 
     model = Autoencoder.load_from_checkpoint(args.model_dir + '/last.ckpt')
 
-    trainer = pl.Trainer(enable_progress_bar=False)
+    trainer = pl.Trainer(enable_progress_bar=False,
+                         gpus=1 if str(device).startswith("cuda") else 0,
+                         inference_mode=True)
     test_img_embeds = embed_imgs(model, test_loader)  # test images in latent space
 
     # Create output directory if it does not exist
@@ -65,17 +75,17 @@ if __name__ == '__main__':
     test_result = test_result.cpu().detach().numpy()
 
     # Min-max normalize reconstructed images
-    test_result = (test_result - np.min(test_result)) / (np.max(test_result) - np.min(test_result))
+    # test_result = (test_result - np.min(test_result)) / (np.max(test_result) - np.min(test_result))
+
+    # Define color mode according to number of channels in input images
+    if temp_channels == 3:
+        colormode = 'RGB'
+    else:
+        colormode = 'L'
 
     for indx, uri in enumerate(datasets_uris):
         # Get filename without path and extension
         filename = uri.split('/')[-1].split('.')[0]
-
-        # Define color mode according to number of channels in input images
-        if temp_channels == 3:
-            colormode = 'RGB'
-        else:
-            colormode = 'L'
         
         # Save reconstructed images
         im = Image.fromarray((test_result[indx] * 255).astype(np.uint8)).convert(colormode)
