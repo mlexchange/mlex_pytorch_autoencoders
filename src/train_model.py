@@ -1,6 +1,7 @@
 import argparse
 import json
 import logging
+import multiprocessing
 import warnings
 
 import pytorch_lightning as pl
@@ -12,7 +13,15 @@ from helper_utils import get_dataloaders
 
 
 SEED = 0
-NUM_WORKERS = 0
+
+num_cpus = multiprocessing.cpu_count()
+if num_cpus>6:
+    NUM_WORKERS = round(num_cpus/6)
+else:
+    NUM_WORKERS = num_cpus
+if NUM_WORKERS % 2 != 0:
+    NUM_WORKERS -= 1
+
 warnings.filterwarnings('ignore')
 logging.getLogger("pytorch_lightning").setLevel(logging.WARNING)    # disable logs from pytorch lightning
 
@@ -40,6 +49,7 @@ if __name__ == '__main__':
     else:
         target_size = None
 
+    print('Number of workers: {NUM_WORKERS}')
     [train_loader, val_loader], (input_channels, width, height), tmp = \
         get_dataloaders(
             args.data_info,
