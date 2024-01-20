@@ -183,6 +183,8 @@ class Decoder(nn.Module):
                 auto.append((f'tconv{2 * layer}',
                              nn.ConvTranspose2d(c_hid, num_input_channels, kernel_size=3, 
                                                 output_padding=1, padding=1, stride=2)))
+                auto.append(('sigmoid',
+                             nn.Sigmoid()))  # The input images is scaled between 0-1
                 # auto.append(('tan',
                 #              nn.Tanh()))  # The input images is scaled between -1 and 1, 
                 #                           # hence the output has to be bounded as well
