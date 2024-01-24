@@ -23,7 +23,7 @@ def split_dataset(dataset, val_pct):
 
 def get_dataloaders(data, batch_size, num_workers, shuffle=False, target_size=None, horz_flip_prob=0,
                     vert_flip_prob=0, brightness=0, contrast=0, saturation=0, hue=0, val_pct=None,
-                    augm_invariant=False):
+                    augm_invariant=False, log=False):
     '''
     This function creates the dataloaders in PyTorch from directory or npy files
     Args:
@@ -51,6 +51,7 @@ def get_dataloaders(data, batch_size, num_workers, shuffle=False, target_size=No
         ############################################################################################
         val_pct:        [int] Percentage for validation [0-100]
         augm_invariant: [bool] Ground truth changes (or not) according to selected transformations
+        log:            [bool] Log information
     Returns:
         PyTorch DataLoaders
         Image size, e.g. (input_channels, width, height)
@@ -74,7 +75,8 @@ def get_dataloaders(data, batch_size, num_workers, shuffle=False, target_size=No
     dataset = CustomDirectoryDataset(local_uri,
                                      target_size,
                                      data_transform,
-                                     augm_invariant)
+                                     augm_invariant,
+                                     log)
     (input_channels, width, height) = dataset[0][0].shape
     datasets_uris = data_info['uri']
     if val_pct:

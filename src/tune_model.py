@@ -64,7 +64,8 @@ if __name__ == '__main__':
             tune_parameters.saturation,
             tune_parameters.hue,
             tune_parameters.val_pct,
-            tune_parameters.augm_invariant
+            tune_parameters.augm_invariant,
+            tune_parameters.log
         )
 
     trainer = pl.Trainer(default_root_dir=args.output_dir,
