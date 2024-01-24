@@ -86,5 +86,6 @@ if __name__ == '__main__':
         filename = uri.split('/')[-1].split('.')[0]
         
         # Save reconstructed images
-        im = Image.fromarray((test_result[indx] * 255).astype(np.uint8)).convert(colormode)
+        im = Image.fromarray((np.squeeze(test_result[indx]) * 255).astype(np.uint8))
+        im = im.convert(colormode)
         im.save(f'{args.output_dir}/reconstructed_{filename}.jpg')
