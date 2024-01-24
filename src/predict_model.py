@@ -50,7 +50,8 @@ if __name__ == '__main__':
             test_parameters.batch_size,
             NUM_WORKERS,
             False,
-            target_size)
+            target_size,
+            log=test_parameters.log)
 
     model = Autoencoder.load_from_checkpoint(args.model_dir + '/last.ckpt')
 
@@ -74,19 +75,10 @@ if __name__ == '__main__':
     test_result = einops.rearrange(test_result, 'n c x y -> n x y c')
     test_result = test_result.cpu().detach().numpy()
 
-    # Min-max normalize reconstructed images
-    # test_result = (test_result - np.min(test_result)) / (np.max(test_result) - np.min(test_result))
-
-    # Define color mode according to number of channels in input images
-    if temp_channels == 3:
-        colormode = 'RGB'
-    else:
-        colormode = 'L'
-
     for indx, uri in enumerate(datasets_uris):
         # Get filename without path and extension
         filename = uri.split('/')[-1].split('.')[0]
         
         # Save reconstructed images
-        im = Image.fromarray((test_result[indx] * 255).astype(np.uint8)).convert(colormode)
+        im = Image.fromarray((test_result[indx] * 255).astype(np.uint8)).convert('L')
         im.save(f'{args.output_dir}/reconstructed_{filename}.jpg')
