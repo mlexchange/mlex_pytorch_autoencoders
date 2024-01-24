@@ -75,10 +75,16 @@ if __name__ == '__main__':
     test_result = einops.rearrange(test_result, 'n c x y -> n x y c')
     test_result = test_result.cpu().detach().numpy()
 
+    # Define color mode according to number of channels in input images
+    if temp_channels == 3:
+        colormode = 'RGB'
+    else:
+        colormode = 'L'
+
     for indx, uri in enumerate(datasets_uris):
         # Get filename without path and extension
         filename = uri.split('/')[-1].split('.')[0]
         
         # Save reconstructed images
-        im = Image.fromarray((test_result[indx] * 255).astype(np.uint8)).convert('L')
+        im = Image.fromarray((test_result[indx] * 255).astype(np.uint8)).convert(colormode)
         im.save(f'{args.output_dir}/reconstructed_{filename}.jpg')
