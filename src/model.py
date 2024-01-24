@@ -1,6 +1,7 @@
 from enum import Enum
 from collections import OrderedDict
 
+import numpy as np
 from PIL import Image
 from pydantic import BaseModel, Field
 from typing import Optional, List
@@ -70,6 +71,8 @@ class DataAugmentation(BaseModel):
     augm_invariant: Optional[bool] = Field(description='Ground truth changes (or not) according to \
                                            selected transformations')
     data_key: Optional[str] = Field(description='keyword for data in NPZ')
+    log: Optional[bool] = Field(description='log information')
+
 
 class TuningParameters(DataAugmentation):
     shuffle: bool = Field(description='shuffle data')
@@ -221,7 +224,8 @@ class Autoencoder(pl.LightningModule):
                  step_size: int = 30,
                  gamma: float = 0.1,
                  width: int = 32,
-                 height: int = 32):
+                 height: int = 32,
+                 act_fn: object = nn.GELU):
         super().__init__()
         self.optimizer = getattr(optim, optimizer.value)
         self.learning_rate = learning_rate
@@ -239,8 +243,8 @@ class Autoencoder(pl.LightningModule):
         # Saving hyperparameters of autoencoder
         self.save_hyperparameters()
         # Creating encoder and decoder
-        self.encoder = encoder_class(num_input_channels, depth, base_channel_size, width, height, latent_dim)
-        self.decoder = decoder_class(num_input_channels, depth, base_channel_size, width, height, latent_dim)
+        self.encoder = encoder_class(num_input_channels, depth, base_channel_size, width, height, latent_dim, act_fn)
+        self.decoder = decoder_class(num_input_channels, depth, base_channel_size, width, height, latent_dim, act_fn)
         # Example input array needed for visualizing the graph of the network
         self.example_input_array = torch.zeros(2, num_input_channels, width, height)
 
@@ -310,7 +314,7 @@ class Autoencoder(pl.LightningModule):
 
 
 class CustomDirectoryDataset(Dataset):
-    def __init__(self, data, target_size, augmentation, augm_invariant):
+    def __init__(self, data, target_size, augmentation, augm_invariant, log):
         augmentation.insert(0, transforms.Resize(target_size))
         self.data_augmentation = transforms.Compose(augmentation)
         self.data = data
@@ -319,14 +323,19 @@ class CustomDirectoryDataset(Dataset):
             transforms.Resize(target_size),
             transforms.ToTensor()
         ])
+        self.log = log
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
-        image = Image.open(self.data[idx]).convert("RGB")
+        image = Image.open(self.data[idx]).convert("L")
+        if self.log:
+            image = np.log1p(np.array(image))
+            image = (((image - np.min(image)) / (np.max(image) - np.min(image)))* 255).astype(np.uint8)
+            image = Image.fromarray(image)
         tensor_image = self.data_augmentation(image)
-        if self.augm_invariant:
+        if not self.augm_invariant:
             return (tensor_image, tensor_image)
         else:
             return (tensor_image, self.simple_transform(image))
