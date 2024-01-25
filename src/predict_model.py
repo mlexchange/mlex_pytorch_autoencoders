@@ -51,27 +51,25 @@ if __name__ == '__main__':
             NUM_WORKERS,
             shuffle=False,
             target_size=target_size,
-            log=test_parameters.log)
+            log=test_parameters.log,
+            train=False)
 
     model = Autoencoder.load_from_checkpoint(args.model_dir + '/last.ckpt')
 
-    trainer = pl.Trainer(enable_progress_bar=False,
-                         gpus=1 if str(device).startswith("cuda") else 0,
-                         inference_mode=True)
-    test_img_embeds = embed_imgs(model, test_loader)  # test images in latent space
+    # Get latent space representation of test images and reconstructed images
+    test_img_embeds, test_result = embed_imgs(model, test_loader)
 
     # Create output directory if it does not exist
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     
+    # Save latent space representation of test images
     df = pd.DataFrame(test_img_embeds.cpu().detach().numpy())
     df.index = datasets_uris
     df.columns = df.columns.astype(str)
     df.to_parquet(f'{args.output_dir}/f_vectors.parquet', engine='pyarrow')
 
     # Reconstructed images
-    test_result = trainer.predict(model, dataloaders=test_loader)
-    test_result = torch.cat(test_result)
     test_result = einops.rearrange(test_result, 'n c x y -> n x y c')
     test_result = test_result.cpu().detach().numpy()
 

@@ -2,7 +2,7 @@ import pandas as pd
 import torch
 from torchvision import transforms
 
-from model import CustomDirectoryDataset
+from model import CustomDirectoryDataset, CustomTiledDataset
 
 
 def split_dataset(dataset, val_pct):
@@ -22,8 +22,8 @@ def split_dataset(dataset, val_pct):
 
 
 def get_dataloaders(data, batch_size, num_workers, shuffle=False, target_size=None, horz_flip_prob=0,
-                    vert_flip_prob=0, brightness=0, contrast=0, saturation=0, hue=0, val_pct=None,
-                    augm_invariant=False, log=False):
+                    vert_flip_prob=0, brightness=0, contrast=0, saturation=0, hue=0, val_pct=0,
+                    augm_invariant=False, log=False, train=True):
     '''
     This function creates the dataloaders in PyTorch from directory or npy files
     Args:
@@ -57,51 +57,52 @@ def get_dataloaders(data, batch_size, num_workers, shuffle=False, target_size=No
         Image size, e.g. (input_channels, width, height)
         List of data URIs
     '''
-    # Definition of data transforms
-    data_transform = []
-    if brightness>0 or contrast>0 or saturation>0 or hue>0:
-        data_transform.append(transforms.ColorJitter(brightness, contrast, saturation, hue))
-    if horz_flip_prob>0:
-        data_transform.append(transforms.RandomHorizontalFlip(p=horz_flip_prob))
-    if vert_flip_prob>0:
-        data_transform.append(transforms.RandomVerticalFlip(p=vert_flip_prob))
-    data_transform.append(transforms.ToTensor())
     # Load data information
     data_info = pd.read_parquet(data, engine='pyarrow')
-    if 'local_uri' in data_info:
-        local_uri = data_info['local_uri']
-    else:
-        local_uri = data_info['uri']
-    dataset = CustomDirectoryDataset(local_uri,
-                                     target_size,
-                                     data_transform,
-                                     augm_invariant,
-                                     log)
-    (input_channels, width, height) = dataset[0][0].shape
     datasets_uris = data_info['uri']
-    if val_pct:
+
+    if train:
+        # Definition of data transforms
+        data_transform = []
+        if brightness>0 or contrast>0 or saturation>0 or hue>0:
+            data_transform.append(transforms.ColorJitter(brightness, contrast, saturation, hue))
+        if horz_flip_prob>0:
+            data_transform.append(transforms.RandomHorizontalFlip(p=horz_flip_prob))
+        if vert_flip_prob>0:
+            data_transform.append(transforms.RandomVerticalFlip(p=vert_flip_prob))
+        data_transform.append(transforms.ToTensor())
+
+        # Get local file location of tiled data if needed
+        if 'local_uri' in data_info:
+            local_uri = data_info['local_uri']
+        else:
+            local_uri = data_info['uri']
+
+        # Create dataset and dataloaders
+        dataset = CustomDirectoryDataset(local_uri, target_size, data_transform, augm_invariant, log)
+        (input_channels, width, height) = dataset[0][0].shape
+
+        # Split dataset into train and validation
         train_set, val_set = split_dataset(dataset, val_pct)
-        train_loader = torch.utils.data.DataLoader(
-            train_set,
-            shuffle=shuffle,
-            batch_size=batch_size,
-            num_workers=num_workers)
+        train_loader = torch.utils.data.DataLoader(train_set, shuffle=shuffle, batch_size=batch_size,
+                                                   num_workers=num_workers)
+        
         if val_pct > 0:
-            val_loader = torch.utils.data.DataLoader(
-                val_set,
-                shuffle=False,
-                batch_size=batch_size,
-                num_workers=num_workers)
+            val_loader = torch.utils.data.DataLoader(val_set, shuffle=False, batch_size=batch_size,
+                                                     num_workers=num_workers)
             data_loader = [train_loader, val_loader]
         else:
             data_loader = [train_loader, None]
     else:
-        data_loader = torch.utils.data.DataLoader(
-            dataset,
-            shuffle=False,
-            batch_size=batch_size,
-            num_workers=num_workers)
-        data_loader = [data_loader, None]
+        if 'api/v1' in data_info['uri'][0]:
+            dataset = CustomTiledDataset(data_info['uri'], target_size, log)
+        else:
+            dataset = CustomDirectoryDataset(data_info['uri'], target_size, None, False, log)
+
+        (input_channels, width, height) = dataset[0][0].shape
+        data_loader = torch.utils.data.DataLoader(dataset, shuffle=False, batch_size=batch_size,
+                                                  num_workers=num_workers)
+            
     return data_loader, (input_channels, width, height), datasets_uris
 
 
@@ -115,8 +116,11 @@ def embed_imgs(model, data_loader):
         Latent space representation of the data
     '''
     embed_list = []
+    reconstruct_list = []
     for imgs in data_loader:
         with torch.no_grad():
             z = model.encoder(imgs[0].to(model.device))
+            x_hat = model.decoder(z)
         embed_list.append(z)
-    return torch.cat(embed_list, dim=0)
+        reconstruct_list.append(x_hat)
+    return torch.cat(embed_list, dim=0), torch.cat(reconstruct_list, dim=0)
