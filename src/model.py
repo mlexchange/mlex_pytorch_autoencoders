@@ -1,3 +1,4 @@
+import io
 from enum import Enum
 from collections import OrderedDict
 
@@ -5,6 +6,7 @@ import numpy as np
 from PIL import Image
 from pydantic import BaseModel, Field
 from typing import Optional, List
+import requests
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -339,3 +341,58 @@ class CustomDirectoryDataset(Dataset):
             return (tensor_image, tensor_image)
         else:
             return (tensor_image, self.simple_transform(image))
+
+
+class CustomTiledDataset(Dataset):
+    def __init__(self, uri_list, target_size, log):
+        self.uri_list = uri_list
+        self.simple_transform = transforms.Compose([
+            transforms.Resize(target_size),
+            transforms.ToTensor()
+        ])
+        self.log = log
+
+    def __len__(self):
+        return len(self.uri_list)
+
+    def __getitem__(self, idx):
+        tiled_uri, metadata = self.uri_list[idx].split('&expected_shape=')
+        # Check if the data is in the expected shape
+        expected_shape= metadata.split('&dtype=')[0]
+        expected_shape = np.array(list(map(int, expected_shape.split('%2C'))))
+        if len(expected_shape) == 3 and expected_shape[0] in [1,3,4]:
+            expected_shape = expected_shape[[1,2,0]]
+        elif len(expected_shape) != 2 or expected_shape[-1] not in [1,3,4]:
+            raise RuntimeError(f"Not supported type of data. Tiled uri: {tiled_uri} and data dimension {expected_shape}")
+        # Get data from tiled URI
+        contents = self._get_tiled_response(tiled_uri, expected_shape, max_tries=5)
+        image = Image.open(io.BytesIO(contents)).convert("L")
+        if self.log:
+            image = np.log1p(np.array(image))
+            image = (((image - np.min(image)) / (np.max(image) - np.min(image)))* 255).astype(np.uint8)
+            image = Image.fromarray(image)
+        tensor_image = self.simple_transform(image)
+        return (tensor_image, tensor_image)
+    
+    @staticmethod
+    def _get_tiled_response(tiled_uri, expected_shape, max_tries=5):
+        '''
+        Get response from tiled URI
+        Args:
+            tiled_uri:          Tiled URI from which data should be retrieved
+            max_tries:          Maximum number of tries to retrieve data, defaults to 5
+        Returns:
+            Response content
+        '''
+        status_code = 502
+        trials = 0
+        while status_code != 200 and trials < max_tries:
+            if len(expected_shape) == 3:
+                response = requests.get(f'{tiled_uri},0,:,:&format=png')
+            else:
+                response = requests.get(f'{tiled_uri},:,:&format=png')
+            status_code = response.status_code
+            trials += 1
+        if status_code != 200:
+            raise Exception(f'Failed to retrieve data from {tiled_uri}')
+        return response.content
