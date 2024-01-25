@@ -44,7 +44,7 @@ if __name__ == '__main__':
     else:
         target_size = None
 
-    [test_loader, temp], (temp_channels, temp_w, temp_h), datasets_uris = \
+    test_loader, (temp_channels, temp_w, temp_h), datasets_uris = \
         get_dataloaders(
             args.data_info,
             test_parameters.batch_size,
