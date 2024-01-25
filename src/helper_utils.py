@@ -94,7 +94,7 @@ def get_dataloaders(data, batch_size, num_workers, shuffle=False, target_size=No
         else:
             data_loader = [train_loader, None]
     else:
-        if 'api/v1' in data_info['uri'][0]:
+        if data_info['type'][0] == 'tiled':
             dataset = CustomTiledDataset(data_info['uri'], target_size, log)
         else:
             dataset = CustomDirectoryDataset(data_info['uri'], target_size, None, False, log)
