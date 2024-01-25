@@ -49,8 +49,8 @@ if __name__ == '__main__':
             args.data_info,
             test_parameters.batch_size,
             NUM_WORKERS,
-            False,
-            target_size,
+            shuffle=False,
+            target_size=target_size,
             log=test_parameters.log)
 
     model = Autoencoder.load_from_checkpoint(args.model_dir + '/last.ckpt')
@@ -81,11 +81,8 @@ if __name__ == '__main__':
     else:
         colormode = 'L'
 
-    for indx, uri in enumerate(datasets_uris):
-        # Get filename without path and extension
-        filename = uri.split('/')[-1].split('.')[0]
-        
-        # Save reconstructed images
+    # Save reconstructed images
+    for indx, uri in enumerate(datasets_uris):        
         im = Image.fromarray((np.squeeze(test_result[indx]) * 255).astype(np.uint8))
         im = im.convert(colormode)
-        im.save(f'{args.output_dir}/reconstructed_{filename}.jpg')
+        im.save(f'{args.output_dir}/reconstructed_{indx}.jpg')
