@@ -1,6 +1,6 @@
 einops==0.7.0
 pandas==2.1.1
 Pillow>=10.2.0
-pyarrow==13.0.0
+pyarrow>=14.0.1
 pydantic==1.8.2
 pytorch-lightning==1.8.6
