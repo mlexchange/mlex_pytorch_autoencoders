@@ -96,12 +96,11 @@ def get_dataloaders(data, batch_size, num_workers, shuffle=False, target_size=No
     else:
         if data_info['type'][0] == 'tiled':
             dataset = CustomTiledDataset(data_info['uri'], target_size, log)
+            (input_channels, width, height) = dataset[0][0].shape
         else:
             dataset = CustomDirectoryDataset(data_info['uri'], target_size, data_transform, 
                                              augm_invariant, log)
-        print(len(dataset), flush=True)
-        print(len(dataset[0]), flush=True)
-        (input_channels, width, height) = dataset[0][0].shape
+            (input_channels, width, height) = dataset[0].shape
         data_loader = torch.utils.data.DataLoader(dataset, shuffle=False, batch_size=batch_size,
                                                   num_workers=num_workers)
             
