@@ -60,10 +60,10 @@ def get_dataloaders(data, batch_size, num_workers, shuffle=False, target_size=No
     # Load data information
     data_info = pd.read_parquet(data, engine='pyarrow')
     datasets_uris = data_info['uri']
+    data_transform = []
 
     if train:
         # Definition of data transforms
-        data_transform = []
         if brightness>0 or contrast>0 or saturation>0 or hue>0:
             data_transform.append(transforms.ColorJitter(brightness, contrast, saturation, hue))
         if horz_flip_prob>0:
@@ -97,8 +97,10 @@ def get_dataloaders(data, batch_size, num_workers, shuffle=False, target_size=No
         if data_info['type'][0] == 'tiled':
             dataset = CustomTiledDataset(data_info['uri'], target_size, log)
         else:
-            dataset = CustomDirectoryDataset(data_info['uri'], target_size, [], False, log)
-
+            dataset = CustomDirectoryDataset(data_info['uri'], target_size, data_transform, 
+                                             augm_invariant, log)
+        print(len(dataset), flush=True)
+        print(len(dataset[0]), flush=True)
         (input_channels, width, height) = dataset[0][0].shape
         data_loader = torch.utils.data.DataLoader(dataset, shuffle=False, batch_size=batch_size,
                                                   num_workers=num_workers)
