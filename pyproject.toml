@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "mlex_pytorch_autoencoders"
+version = "0.2.0"
+description = ""
+readme = "README.md"
+packages = [
+    { include = "src/**/*" }
+]
+authors = ["MLExchange"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+einops = "0.7.0"
+pandas = "2.1.1"
+Pillow = ">=10.2.0"
+pyarrow = ">=14.0.1"
+pydantic = "1.8.2"
+torchvision = "*"
+pytorch-lightning = "1.8.6"
+pyyaml = "*"
+tiled = { version = "0.1.0a107", extras = ["client"] }
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
