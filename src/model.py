@@ -10,6 +10,7 @@ import torch.optim as optim
 from PIL import Image
 from pydantic import BaseModel, Field
 from tiled.client import from_uri
+from tiled.client.array import ArrayClient
 from torch.utils.data import Dataset
 from torchvision import transforms
 
@@ -474,7 +475,10 @@ class CustomTiledDataset(Dataset):
         cum_data_size = 0
         for uri in sub_uri_list:
             dataset = self.tiled_client[uri]
-            cum_data_size += len(dataset)
+            if type(dataset) is ArrayClient:
+                cum_data_size += len(dataset)
+            else:
+                cum_data_size += 1
             tiled_data.append((uri, cum_data_size))
         self.cum_data_size = cum_data_size
         self.tiled_data = tiled_data
@@ -500,6 +504,8 @@ class CustomTiledDataset(Dataset):
 
         if len(contents.shape) == 3:
             contents = np.squeeze(contents)
+        elif len(contents.shape) == 2:
+            contents = contents[np.newaxis,]
 
         if contents.dtype != np.uint8:
             low = np.percentile(contents.ravel(), 1)
