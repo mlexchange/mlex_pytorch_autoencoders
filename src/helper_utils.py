@@ -4,7 +4,7 @@ from functools import reduce
 import torch
 from torchvision import transforms
 
-from model import CustomDirectoryDataset, CustomTiledDataset
+from src.dataset import CustomDirectoryDataset, CustomTiledDataset
 
 # List of allowed and not allowed formats
 FORMATS = [
@@ -106,6 +106,7 @@ def get_dataloaders(
     log=False,
     train=True,
     api_key=None,
+    detector_name=None,
 ):
     """
     This function creates the dataloaders in PyTorch from directory or npy files
@@ -139,6 +140,7 @@ def get_dataloaders(
         augm_invariant: [bool] Ground truth changes (or not) according to selected transformations
         log:            [bool] Log information
         api_key:        [str] API key for tiled
+        detector_name:  [str] Detector name
     Returns:
         PyTorch DataLoaders
         Image size, e.g. (input_channels, width, height)
@@ -189,13 +191,22 @@ def get_dataloaders(
     else:
         if data_type == "tiled":
             dataset = CustomTiledDataset(
-                data_uris, root_uri, target_size, log, api_key=api_key
+                data_uris,
+                root_uri,
+                target_size,
+                log,
+                api_key=api_key,
+                detector_name=detector_name,
             )
         else:
             data_transform.append(transforms.ToTensor())
+
+            # Get filepaths
             filepaths = []
             for uri in data_uris:
                 filepaths += walk_directory(root_uri + uri)
+
+            # TODO: Add support for detector name
             dataset = CustomDirectoryDataset(
                 filepaths, target_size, data_transform, augm_invariant, log
             )
