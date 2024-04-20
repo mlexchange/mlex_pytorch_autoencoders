@@ -9,7 +9,8 @@ import torch
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 from helper_utils import get_dataloaders
-from model import Autoencoder, TrainingParameters
+from model import Autoencoder
+from parameters import TrainingParameters
 
 SEED = 0
 
@@ -52,8 +53,8 @@ if __name__ == "__main__":
     else:
         target_size = None
 
-    print("Number of workers: {NUM_WORKERS}")
-    [train_loader, val_loader], (input_channels, width, height), tmp = get_dataloaders(
+    print(f"Number of workers: {NUM_WORKERS}")
+    [train_loader, val_loader], (input_channels, width, height) = get_dataloaders(
         args.data_info,
         train_parameters.batch_size,
         NUM_WORKERS,

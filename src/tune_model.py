@@ -11,7 +11,8 @@ import torch.optim as optim
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 from helper_utils import get_dataloaders
-from model import Autoencoder, TuningParameters
+from model import Autoencoder
+from parameters import TuningParameters
 
 SEED = 0
 num_cpus = multiprocessing.cpu_count()
@@ -53,7 +54,7 @@ if __name__ == "__main__":
     else:
         target_size = None
 
-    [train_loader, val_loader], (input_channels, width, height), tmp = get_dataloaders(
+    [train_loader, val_loader], (input_channels, width, height) = get_dataloaders(
         args.data_info,
         tune_parameters.batch_size,
         NUM_WORKERS,

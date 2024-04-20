@@ -2,7 +2,7 @@ import pandas as pd
 import torch
 from torchvision import transforms
 
-from model import CustomDirectoryDataset, CustomTiledDataset
+from datasets import CustomDirectoryDataset, CustomTiledDataset
 
 
 def split_dataset(dataset, val_pct):
@@ -72,11 +72,9 @@ def get_dataloaders(
     Returns:
         PyTorch DataLoaders
         Image size, e.g. (input_channels, width, height)
-        List of data URIs
     """
     # Load data information
     data_info = pd.read_parquet(data, engine="pyarrow")
-    datasets_uris = data_info["uri"]
     data_transform = []
 
     if train:
@@ -91,12 +89,7 @@ def get_dataloaders(
             data_transform.append(transforms.RandomVerticalFlip(p=vert_flip_prob))
         data_transform.append(transforms.ToTensor())
 
-        # Get local file location of tiled data if needed
-        if "local_uri" in data_info:
-            local_uri = data_info["local_uri"]
-        else:
-            local_uri = data_info["uri"]
-
+        local_uri = data_info["uri"]
         # Create dataset and dataloaders
         dataset = CustomDirectoryDataset(
             local_uri, target_size, data_transform, augm_invariant, log
@@ -118,7 +111,13 @@ def get_dataloaders(
             data_loader = [train_loader, None]
     else:
         if data_info["type"][0] == "tiled":
-            dataset = CustomTiledDataset(data_info["uri"], target_size, log)
+            dataset = CustomTiledDataset(
+                data_info["root_uri"].tolist()[0],
+                data_info["sub_uris"].tolist(),
+                target_size,
+                log,
+                data_info["api_key"].tolist()[0],
+            )
         else:
             data_transform.append(transforms.ToTensor())
             dataset = CustomDirectoryDataset(
@@ -130,7 +129,7 @@ def get_dataloaders(
             dataset, shuffle=False, batch_size=batch_size, num_workers=num_workers
         )
 
-    return data_loader, (input_channels, width, height), datasets_uris
+    return data_loader, (input_channels, width, height)
 
 
 def embed_imgs(model, data_loader):

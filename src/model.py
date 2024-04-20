@@ -1,121 +1,12 @@
-import io
 from collections import OrderedDict
 from enum import Enum
-from typing import List, Optional
 
-import numpy as np
 import pytorch_lightning as pl
-import requests
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from PIL import Image
-from pydantic import BaseModel, Field
-from torch.utils.data import Dataset
-from torchvision import transforms
 
-
-class Optimizer(str, Enum):
-    adadelta = "Adadelta"
-    adagrad = "Adagrad"
-    adam = "Adam"
-    adamw = "AdamW"
-    sparseadam = "SparseAdam"
-    adamax = "Adamax"
-    asgd = "ASGD"
-    lbfgs = "LBFGS"
-    rmsprop = "RMSprop"
-    rprop = "Rprop"
-    sgd = "SGD"
-
-
-class Criterion(str, Enum):
-    l1loss = "L1Loss"
-    mseloss = "MSELoss"
-    crossentropyloss = "CrossEntropyLoss"
-    ctcloss = "CTCLoss"
-    nllloss = "NLLLoss"
-    poissonnllloss = "PoissonNLLLoss"
-    gaussiannllloss = "GaussianNLLLoss"
-    kldivloss = "KLDivLoss"
-    bceloss = "BCELoss"
-    bcewithlogitsloss = "BCEWithLogitsLoss"
-    marginrankingloss = "MarginRankingLoss"
-    hingeembeddingloss = "HingeEnbeddingLoss"
-    multilabelmarginloss = "MultiLabelMarginLoss"
-    huberloss = "HuberLoss"
-    smoothl1loss = "SmoothL1Loss"
-    softmarginloss = "SoftMarginLoss"
-    multilabelsoftmarginloss = "MutiLabelSoftMarginLoss"
-    cosineembeddingloss = "CosineEmbeddingLoss"
-    multimarginloss = "MultiMarginLoss"
-    tripletmarginloss = "TripletMarginLoss"
-    tripletmarginwithdistanceloss = "TripletMarginWithDistanceLoss"
-
-
-class DataAugmentation(BaseModel):
-    target_width: int = Field(description="data target width")
-    target_height: int = Field(description="data target height")
-    horz_flip_prob: Optional[float] = Field(
-        description="probability of the image being flipped \
-                                            horizontally"
-    )
-    vert_flip_prob: Optional[float] = Field(
-        description="probability of the image being flipped \
-                                            vertically"
-    )
-    brightness: Optional[float] = Field(
-        description="how much to jitter brightness. brightness_factor \
-                                        is chosen uniformly from [max(0, 1 - brightness), 1 + brightness]"
-    )
-    contrast: Optional[float] = Field(
-        description="how much to jitter contrast. contrast_factor is \
-                                      chosen uniformly from [max(0, 1 - contrast), 1 + contrast]."
-    )
-    saturation: Optional[float] = Field(
-        description="how much to jitter saturation. saturation_factor \
-                                        is chosen uniformly from [max(0, 1 - saturation), 1 + saturation]. "
-    )
-    hue: Optional[float] = Field(
-        description="how much to jitter hue. hue_factor is chosen uniformly \
-                                 from [-hue, hue]. Should have 0<= hue <= 0.5 or -0.5 <= min <= max \
-                                 <= 0.5. To jitter hue, the pixel values of the input image has to \
-                                 be non-negative for conversion to HSV space."
-    )
-    augm_invariant: Optional[bool] = Field(
-        description="Ground truth changes (or not) according to \
-                                           selected transformations"
-    )
-    data_key: Optional[str] = Field(description="keyword for data in NPZ")
-    log: Optional[bool] = Field(description="log information")
-
-
-class TuningParameters(DataAugmentation):
-    shuffle: bool = Field(description="shuffle data")
-    batch_size: int = Field(description="batch size")
-    val_pct: int = Field(description="validation percentage")
-    num_epochs: int = Field(description="number of epochs")
-    optimizer: Optimizer
-    criterion: Criterion
-    gamma: float = Field(description="Multiplicative factor of learning rate decay")
-    step_size: int = Field(description="Period of learning rate decay")
-    learning_rate: float = Field(description="learning rate")
-    seed: Optional[int] = Field(description="random seed")
-
-
-class TrainingParameters(TuningParameters):
-    latent_dim: int = Field(description="latent space dimension")
-    depth: int = Field(description="Network depth")
-    base_channel_size: int = Field(description="number of base channels")
-
-
-class EvaluationParameters(TrainingParameters):
-    latent_dim: List[int] = Field(description="list of latent space dimensions")
-
-
-class TestingParameters(DataAugmentation):
-    batch_size: int = Field(description="batch size")
-    seed: Optional[int] = Field(description="random seed")
+from parameters import Criterion, Optimizer
 
 
 class Encoder(nn.Module):
@@ -253,9 +144,6 @@ class Decoder(nn.Module):
                 auto.append(
                     ("sigmoid", nn.Sigmoid())
                 )  # The input images is scaled between 0-1
-                # auto.append(('tan',
-                #              nn.Tanh()))  # The input images is scaled between -1 and 1,
-                #                           # hence the output has to be bounded as well
             else:
                 auto.append(
                     (
@@ -420,90 +308,3 @@ class Autoencoder(pl.LightningModule):
 
     def on_train_end(self):
         print("Train process completed", flush=True)
-
-
-class CustomDirectoryDataset(Dataset):
-    def __init__(self, data, target_size, augmentation, augm_invariant, log):
-        augmentation.insert(0, transforms.Resize(target_size))
-        self.data_augmentation = transforms.Compose(augmentation)
-        self.data = data
-        self.augm_invariant = augm_invariant
-        self.simple_transform = transforms.Compose(
-            [transforms.Resize(target_size), transforms.ToTensor()]
-        )
-        self.log = log
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        image = Image.open(self.data[idx]).convert("L")
-        if self.log:
-            image = np.log1p(np.array(image))
-            image = (
-                ((image - np.min(image)) / (np.max(image) - np.min(image))) * 255
-            ).astype(np.uint8)
-            image = Image.fromarray(image)
-        tensor_image = self.data_augmentation(image)
-        if not self.augm_invariant:
-            return (tensor_image, tensor_image)
-        else:
-            return (tensor_image, self.simple_transform(image))
-
-
-class CustomTiledDataset(Dataset):
-    def __init__(self, uri_list, target_size, log):
-        self.uri_list = uri_list
-        self.simple_transform = transforms.Compose(
-            [transforms.Resize(target_size), transforms.ToTensor()]
-        )
-        self.log = log
-
-    def __len__(self):
-        return len(self.uri_list)
-
-    def __getitem__(self, idx):
-        tiled_uri, metadata = self.uri_list[idx].split("&expected_shape=")
-        # Check if the data is in the expected shape
-        expected_shape = metadata.split("&dtype=")[0]
-        expected_shape = np.array(list(map(int, expected_shape.split("%2C"))))
-        if len(expected_shape) == 3 and expected_shape[0] in [1, 3, 4]:
-            expected_shape = expected_shape[[1, 2, 0]]
-        elif len(expected_shape) != 2 or expected_shape[-1] not in [1, 3, 4]:
-            raise RuntimeError(
-                f"Not supported type of data. Tiled uri: {tiled_uri} and data dimension {expected_shape}"
-            )
-        # Get data from tiled URI
-        contents = self._get_tiled_response(tiled_uri, expected_shape, max_tries=5)
-        image = Image.open(io.BytesIO(contents)).convert("L")
-        if self.log:
-            image = np.log1p(np.array(image))
-            image = (
-                ((image - np.min(image)) / (np.max(image) - np.min(image))) * 255
-            ).astype(np.uint8)
-            image = Image.fromarray(image)
-        tensor_image = self.simple_transform(image)
-        return (tensor_image, tensor_image)
-
-    @staticmethod
-    def _get_tiled_response(tiled_uri, expected_shape, max_tries=5):
-        """
-        Get response from tiled URI
-        Args:
-            tiled_uri:          Tiled URI from which data should be retrieved
-            max_tries:          Maximum number of tries to retrieve data, defaults to 5
-        Returns:
-            Response content
-        """
-        status_code = 502
-        trials = 0
-        while status_code != 200 and trials < max_tries:
-            if len(expected_shape) == 3:
-                response = requests.get(f"{tiled_uri},0,:,:&format=png")
-            else:
-                response = requests.get(f"{tiled_uri},:,:&format=png")
-            status_code = response.status_code
-            trials += 1
-        if status_code != 200:
-            raise Exception(f"Failed to retrieve data from {tiled_uri}")
-        return response.content
