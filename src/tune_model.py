@@ -87,6 +87,7 @@ if __name__ == "__main__":
     )
 
     model = Autoencoder.load_from_checkpoint(args.model_dir + "/last.ckpt")
+    model.define_save_loss_dir(args.output_dir)
     model.optimizer = getattr(optim, tune_parameters.optimizer.value)
     criterion = getattr(nn, tune_parameters.criterion.value)
     model.criterion = criterion()

@@ -1,3 +1,4 @@
+import csv
 from collections import OrderedDict
 from enum import Enum
 
@@ -241,6 +242,13 @@ class Autoencoder(pl.LightningModule):
         # Example input array needed for visualizing the graph of the network
         self.example_input_array = torch.zeros(2, num_input_channels, width, height)
 
+    def define_save_loss_dir(self, dir_save_loss):
+        self.dir_save_loss = dir_save_loss
+        with open(f"{self.dir_save_loss}/training_log.csv", "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["epoch", "train_loss", "val_loss"])
+        pass
+
     def forward(self, x):
         """
         The forward function takes in an image and returns the reconstructed image
@@ -301,6 +309,10 @@ class Autoencoder(pl.LightningModule):
         print(
             f"{current_epoch},{train_loss / num_batches},{validation_loss}", flush=True
         )
+        # Write to CSV
+        with open(f"{self.dir_save_loss}/training_log.csv", "a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([current_epoch, train_loss / num_batches, validation_loss])
 
     def on_validation_epoch_end(self):
         num_batches = self.trainer.num_val_batches[0]  # may be a list[int]

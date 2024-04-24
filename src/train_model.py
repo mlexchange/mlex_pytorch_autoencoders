@@ -99,6 +99,7 @@ if __name__ == "__main__":
         width=width,
         height=height,
     )
+    model.define_save_loss_dir(args.output_dir)
 
     print("epoch,train_loss,val_loss")
     trainer.fit(model, train_loader, val_loader)
