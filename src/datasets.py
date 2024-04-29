@@ -67,8 +67,8 @@ class CustomTiledDataset(Dataset):
             image = np.clip((image - low) / (high - low), 0, 1)
             image = (image * 255).astype(np.uint8)  # Convert to uint8, 0-255
         if len(image.shape) == 3:
-            if image.shape[0] == 3:
-                image = np.transpose(image, (1, 2, 0))
+            if image.shape[2] == 3 or image.shape[3] == 1:
+                image = np.transpose(image, (2, 0, 1))
             elif image.shape[0] == 1:
                 image = np.squeeze(image)
             else:
