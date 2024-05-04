@@ -1,10 +1,10 @@
 {
     "content_type": "model",
-    "name": "pytorch_autoencoder",
-    "version": "0.0.4",
+    "name": "pytorch_autoencoder_v0.0.5",
+    "version": "0.0.5",
     "type": "unsupervised",
     "owner": "mlexchange team",
-    "uri": "ghcr.io/mlexchange/mlex_pytorch_autoencoders:main",
+    "uri": "ghcr.io/mlexchange/mlex_pytorch_autoencoders_v0_0_5:main",
     "application": [
         "data_clinic"
     ],
@@ -365,6 +365,14 @@
             "comp_group": "train_model"
         },
         {
+            "type": "int",
+            "name": "num_workers",
+            "title": "Number of workers",
+            "param_key": "num_workers",
+            "value": 2,
+            "comp_group": "train_model"
+        },
+        {
             "type": "float",
             "name": "horz_flip_prob",
             "title": "Data Augmentation: Probability of Horizontal Flip",
@@ -658,6 +666,14 @@
             "comp_group": "tune_model"
         },
         {
+            "type": "int",
+            "name": "num_workers",
+            "title": "Number of workers",
+            "param_key": "num_workers",
+            "value": 2,
+            "comp_group": "tune_model"
+        },
+        {
             "type": "slider",
             "name": "batch_size",
             "title": "Batch Size",
@@ -678,6 +694,14 @@
             "title": "Seed",
             "param_key": "seed",
             "value": 0,
+            "comp_group": "prediction_model"
+        },
+        {
+            "type": "int",
+            "name": "num_workers",
+            "title": "Number of workers",
+            "param_key": "num_workers",
+            "value": 2,
             "comp_group": "prediction_model"
         }
     ],
