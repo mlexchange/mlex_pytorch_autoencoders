@@ -90,6 +90,7 @@ class TuningParameters(DataAugmentation):
     step_size: int = Field(description="Period of learning rate decay")
     learning_rate: float = Field(description="learning rate")
     seed: Optional[int] = Field(description="random seed")
+    num_workers: Optional[int] = Field(description="number of workers")
 
 
 class TrainingParameters(TuningParameters):
@@ -105,3 +106,4 @@ class EvaluationParameters(TrainingParameters):
 class InferenceParameters(DataAugmentation):
     batch_size: int = Field(description="batch size")
     seed: Optional[int] = Field(description="random seed")
+    num_workers: Optional[int] = Field(description="number of workers")

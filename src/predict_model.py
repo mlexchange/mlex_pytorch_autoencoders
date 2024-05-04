@@ -1,7 +1,6 @@
 import argparse
 import json
 import logging
-import multiprocessing
 import warnings
 from pathlib import Path
 
@@ -14,14 +13,6 @@ from PIL import Image
 from helper_utils import embed_imgs, get_dataloaders
 from model import Autoencoder
 from parameters import InferenceParameters
-
-num_cpus = multiprocessing.cpu_count()
-if num_cpus > 6:
-    NUM_WORKERS = round(num_cpus / 6)
-else:
-    NUM_WORKERS = num_cpus
-if NUM_WORKERS % 2 != 0:
-    NUM_WORKERS -= 1
 
 warnings.filterwarnings("ignore")
 logging.getLogger("pytorch_lightning").setLevel(
@@ -54,7 +45,7 @@ if __name__ == "__main__":
     inference_loader, (temp_channels, temp_w, temp_h) = get_dataloaders(
         args.data_info,
         inference_parameters.batch_size,
-        NUM_WORKERS,
+        inference_parameters.num_workers,
         shuffle=False,
         target_size=target_size,
         log=inference_parameters.log,
@@ -62,9 +53,11 @@ if __name__ == "__main__":
     )
 
     model = Autoencoder.load_from_checkpoint(args.model_dir + "/last.ckpt")
+    print("Model loaded")
 
     # Get latent space representation of inference images and reconstructed images
     inference_img_embeds, inference_result = embed_imgs(model, inference_loader)
+    print("Inference images embedded")
 
     # Create output directory if it does not exist
     output_dir = Path(args.output_dir)
@@ -74,6 +67,7 @@ if __name__ == "__main__":
     df = pd.DataFrame(inference_img_embeds.cpu().detach().numpy())
     df.columns = df.columns.astype(str)
     df.to_parquet(f"{args.output_dir}/f_vectors.parquet", engine="pyarrow")
+    print("Latent space representation saved")
 
     # Reconstructed images
     inference_result = einops.rearrange(inference_result, "n c x y -> n x y c")
@@ -92,3 +86,4 @@ if __name__ == "__main__":
         )
         im = im.convert(colormode)
         im.save(f"{args.output_dir}/reconstructed_{indx}.jpg")
+    print("Reconstructed images saved")

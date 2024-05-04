@@ -1,7 +1,6 @@
 import argparse
 import json
 import logging
-import multiprocessing
 import warnings
 
 import pytorch_lightning as pl
@@ -15,13 +14,7 @@ from model import Autoencoder
 from parameters import TuningParameters
 
 SEED = 0
-num_cpus = multiprocessing.cpu_count()
-if num_cpus > 6:
-    NUM_WORKERS = round(num_cpus / 6)
-else:
-    NUM_WORKERS = num_cpus
-if NUM_WORKERS % 2 != 0:
-    NUM_WORKERS -= 1
+
 warnings.filterwarnings("ignore")
 logging.getLogger("pytorch_lightning").setLevel(
     logging.WARNING
@@ -57,7 +50,7 @@ if __name__ == "__main__":
     [train_loader, val_loader], (input_channels, width, height) = get_dataloaders(
         args.data_info,
         tune_parameters.batch_size,
-        NUM_WORKERS,
+        tune_parameters.num_workers,
         tune_parameters.shuffle,
         target_size,
         tune_parameters.horz_flip_prob,
