@@ -45,7 +45,10 @@ class CustomTiledDataset(Dataset):
         self.cum_sizes = []
         cum_size = 0
         for sub_uri in sub_uris:
-            cum_size += len(self.tiled_client[sub_uri])
+            if len(self.tiled_client[sub_uri].shape) > 2:
+                cum_size += len(self.tiled_client[sub_uri])
+            else:
+                cum_size += 1
             self.cum_sizes.append(cum_size)
 
     def __len__(self):
@@ -59,7 +62,10 @@ class CustomTiledDataset(Dataset):
 
     def __getitem__(self, idx):
         sub_uri, index = self._get_tiled_index(idx)
-        image = self.tiled_client[sub_uri][index,]
+        if index > 0:
+            image = self.tiled_client[sub_uri][index,]
+        else:
+            image = self.tiled_client[sub_uri][:]
         if image.dtype != np.uint8:
             # Normalize according to percentiles 1-99
             low = np.percentile(image.ravel(), 1)
