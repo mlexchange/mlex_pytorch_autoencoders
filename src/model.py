@@ -262,7 +262,7 @@ class Autoencoder(pl.LightningModule):
         The forward function takes in an image and returns the reconstructed image
         during the prediction step
         """
-        x, _ = batch
+        x = batch[0]
         batch_hat = self.forward(x)
         return batch_hat
 
@@ -270,9 +270,12 @@ class Autoencoder(pl.LightningModule):
         """
         Given a batch of images, this function returns the reconstruction loss (MSE in our case)
         """
-        x, y = batch
+        x = batch[0]
         x_hat = self.forward(x)
-        loss = self.criterion(x_hat, y)
+        if len(batch) == 1:
+            loss = self.criterion(x_hat, x)
+        else:
+            loss = self.criterion(x_hat, batch[1])
         return loss
 
     def configure_optimizers(self):
