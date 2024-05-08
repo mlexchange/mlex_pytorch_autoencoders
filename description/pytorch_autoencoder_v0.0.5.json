@@ -116,12 +116,16 @@
             "title": "Batch Size",
             "param_key": "batch_size",
             "min": 16,
-            "max": 128,
+            "max": 512,
             "step": 16,
             "value": 32,
             "marks": {
                 "16": "16",
-                "128": "128"
+                "32": "32",
+                "64": "64",
+                "128": "128",
+                "256": "256",
+                "512": "512"
             },
             "comp_group": "train_model"
         },
@@ -462,12 +466,16 @@
             "title": "Batch Size",
             "param_key": "batch_size",
             "min": 16,
-            "max": 128,
+            "max": 512,
             "step": 16,
             "value": 32,
             "marks": {
                 "16": "16",
-                "128": "128"
+                "32": "32",
+                "64": "64",
+                "128": "128",
+                "256": "256",
+                "512": "512"
             },
             "comp_group": "tune_model"
         },
@@ -679,12 +687,16 @@
             "title": "Batch Size",
             "param_key": "batch_size",
             "min": 16,
-            "max": 128,
+            "max": 512,
             "step": 16,
             "value": 32,
             "marks": {
                 "16": "16",
-                "128": "128"
+                "32": "32",
+                "64": "64",
+                "128": "128",
+                "256": "256",
+                "512": "512"
             },
             "comp_group": "prediction_model"
         },
