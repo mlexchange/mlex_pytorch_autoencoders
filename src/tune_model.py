@@ -16,9 +16,7 @@ from parameters import TuningParameters
 SEED = 0
 
 warnings.filterwarnings("ignore")
-logging.getLogger("pytorch_lightning").setLevel(
-    logging.WARNING
-)  # disable logs from pytorch lightning
+logger = logging.getLogger("pytorch_lightning")
 
 
 if __name__ == "__main__":
@@ -35,12 +33,12 @@ if __name__ == "__main__":
     else:
         seed = SEED  # Setting the pre-defined seed
     pl.seed_everything(seed)
-    print("Seed: " + str(seed))
+    logger.info("Seed: " + str(seed))
 
     device = (
         torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     )
-    print("Device:" + str(device))
+    logger.info("Device:" + str(device))
 
     if tune_parameters.target_width * tune_parameters.target_height > 0:
         target_size = (tune_parameters.target_width, tune_parameters.target_height)
@@ -89,5 +87,5 @@ if __name__ == "__main__":
     model.gamma = tune_parameters.gamma
     model.step_size = tune_parameters.step_size
 
-    print("epoch,train_loss,val_loss")
+    logger.info("epoch,train_loss,val_loss")
     trainer.fit(model, train_loader, val_loader)

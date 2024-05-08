@@ -15,9 +15,7 @@ from model import Autoencoder
 from parameters import InferenceParameters
 
 warnings.filterwarnings("ignore")
-logging.getLogger("pytorch_lightning").setLevel(
-    logging.WARNING
-)  # disable logs from pytorch lightning
+logger = logging.getLogger("pytorch_lightning")
 
 
 if __name__ == "__main__":
@@ -32,7 +30,7 @@ if __name__ == "__main__":
     device = (
         torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     )
-    print("Device:", device)
+    logger.info("Device:", device)
 
     if inference_parameters.target_width * inference_parameters.target_height > 0:
         target_size = (
@@ -53,11 +51,11 @@ if __name__ == "__main__":
     )
 
     model = Autoencoder.load_from_checkpoint(args.model_dir + "/last.ckpt")
-    print("Model loaded")
+    logger.info("Model loaded")
 
     # Get latent space representation of inference images and reconstructed images
     inference_img_embeds, inference_result = embed_imgs(model, inference_loader)
-    print("Inference images embedded")
+    logger.info("Inference images embedded")
 
     # Create output directory if it does not exist
     output_dir = Path(args.output_dir)
@@ -67,7 +65,7 @@ if __name__ == "__main__":
     df = pd.DataFrame(inference_img_embeds.cpu().detach().numpy())
     df.columns = df.columns.astype(str)
     df.to_parquet(f"{args.output_dir}/f_vectors.parquet", engine="pyarrow")
-    print("Latent space representation saved")
+    logger.info("Latent space representation saved")
 
     # Reconstructed images
     inference_result = einops.rearrange(inference_result, "n c x y -> n x y c")
@@ -86,4 +84,4 @@ if __name__ == "__main__":
         )
         im = im.convert(colormode)
         im.save(f"{args.output_dir}/reconstructed_{indx}.jpg")
-    print("Reconstructed images saved")
+    logger.info("Reconstructed images saved")
