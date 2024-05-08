@@ -76,6 +76,8 @@ def get_dataloaders(
     # Load data information
     data_info = pd.read_parquet(data, engine="pyarrow")
     data_transform = []
+    if num_workers > 0:
+        persistent_workers = True
 
     if train:
         # Definition of data transforms
@@ -99,12 +101,22 @@ def get_dataloaders(
         # Split dataset into train and validation
         train_set, val_set = split_dataset(dataset, val_pct)
         train_loader = torch.utils.data.DataLoader(
-            train_set, shuffle=shuffle, batch_size=batch_size, num_workers=num_workers
+            train_set,
+            shuffle=shuffle,
+            batch_size=batch_size,
+            num_workers=num_workers,
+            persistent_workers=persistent_workers,
+            pin_memory=True,
         )
 
         if val_pct > 0:
             val_loader = torch.utils.data.DataLoader(
-                val_set, shuffle=False, batch_size=batch_size, num_workers=num_workers
+                val_set,
+                shuffle=False,
+                batch_size=batch_size,
+                num_workers=num_workers,
+                persistent_workers=persistent_workers,
+                pin_memory=True,
             )
             data_loader = [train_loader, val_loader]
         else:
@@ -125,8 +137,14 @@ def get_dataloaders(
             )
 
         (input_channels, width, height) = dataset[0][0].shape
+
         data_loader = torch.utils.data.DataLoader(
-            dataset, shuffle=False, batch_size=batch_size, num_workers=num_workers
+            dataset,
+            shuffle=False,
+            batch_size=batch_size,
+            num_workers=num_workers,
+            persistent_workers=persistent_workers,
+            pin_memory=True,
         )
 
     return data_loader, (input_channels, width, height)
