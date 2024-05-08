@@ -1,6 +1,7 @@
 import argparse
 import json
 import logging
+import time
 import warnings
 
 import pytorch_lightning as pl
@@ -14,9 +15,7 @@ from parameters import TrainingParameters
 SEED = 0
 
 warnings.filterwarnings("ignore")
-logging.getLogger("pytorch_lightning").setLevel(
-    logging.WARNING
-)  # disable logs from pytorch lightning
+logger = logging.getLogger("pytorch_lightning")
 
 
 if __name__ == "__main__":
@@ -32,19 +31,19 @@ if __name__ == "__main__":
     else:
         seed = SEED  # Setting the pre-defined seed
     pl.seed_everything(seed)
-    print("Seed: " + str(seed))
+    logger.info("Seed: " + str(seed))
 
     device = (
         torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     )
-    print("Device:" + str(device))
+    logger.info("Device:" + str(device))
 
     if train_parameters.target_width * train_parameters.target_height > 0:
         target_size = (train_parameters.target_width, train_parameters.target_height)
     else:
         target_size = None
 
-    print(f"Number of workers: {train_parameters.num_workers}")
+    logger.info(f"Number of workers: {train_parameters.num_workers}")
     [train_loader, val_loader], (input_channels, width, height) = get_dataloaders(
         args.data_info,
         train_parameters.batch_size,
@@ -92,5 +91,7 @@ if __name__ == "__main__":
     )
     model.define_save_loss_dir(args.output_dir)
 
-    print("epoch,train_loss,val_loss")
+    start = time.time()
+    logger.info("epoch,train_loss,val_loss")
     trainer.fit(model, train_loader, val_loader)
+    logger.info(f"Training time: {time.time()-start}")
