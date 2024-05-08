@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor
+
 import numpy as np
 from PIL import Image
 from tiled.client import from_uri
@@ -29,17 +31,34 @@ class CustomDirectoryDataset(Dataset):
             image = Image.fromarray(image)
         tensor_image = self.data_augmentation(image)
         if not self.augm_invariant:
-            return (tensor_image, tensor_image)
+            return (tensor_image,)
         else:
             return (tensor_image, self.simple_transform(image))
 
+    def __getitems__(self, index_list):
+        with ThreadPoolExecutor() as executor:
+            data = list(executor.map(self.__getitem__, index_list))
+        return data
+
 
 class CustomTiledDataset(Dataset):
-    def __init__(self, root_uri, sub_uris, target_size, log, api_key=None):
+    def __init__(
+        self,
+        root_uri,
+        sub_uris,
+        target_size,
+        augmentation,
+        augm_invariant,
+        log,
+        api_key=None,
+    ):
         self.sub_uris = sub_uris
+        augmentation.insert(0, transforms.Resize(target_size))
+        self.data_augmentation = transforms.Compose(augmentation)
         self.simple_transform = transforms.Compose(
             [transforms.Resize(target_size), transforms.ToTensor()]
         )
+        self.augm_invariant = augm_invariant
         self.log = log
         self.tiled_client = from_uri(root_uri, api_key=api_key)
         self.cum_sizes = []
@@ -86,5 +105,13 @@ class CustomTiledDataset(Dataset):
             ).astype(np.uint8)
         image = Image.fromarray(image)
         image = image.convert("L")
-        tensor_image = self.simple_transform(image)
-        return (tensor_image, tensor_image)
+        tensor_image = self.data_augmentation(image)
+        if not self.augm_invariant:
+            return (tensor_image,)
+        else:
+            return (tensor_image, self.simple_transform(image))
+
+    def __getitems__(self, index_list):
+        with ThreadPoolExecutor() as executor:
+            data = list(executor.map(self.__getitem__, index_list))
+        return data
