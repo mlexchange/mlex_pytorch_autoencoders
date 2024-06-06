@@ -4,5 +4,6 @@ Pillow>=10.2.0
 pyarrow>=14.0.1
 pydantic==1.8.2
 pytorch-lightning==1.8.6
-tiled[client]==0.1.0a107
+tifffile
+tiled[client]==0.1.0a116
 torchvision==0.17.2
