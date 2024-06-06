@@ -22,6 +22,8 @@ class IOParameters(BaseModel):
         description="optional, uid to retrieve models for inference"
     )
     data_tiled_api_key: Optional[str] = Field(description="API key for data tiled")
+    result_tiled_uri: str = Field(description="tiled uri to save data to")
+    result_tiled_api_key: Optional[str] = Field(description="tiled api key")
 
 
 class Optimizer(str, Enum):

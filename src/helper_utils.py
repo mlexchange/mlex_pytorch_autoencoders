@@ -1,4 +1,7 @@
 import torch
+from tiled.client import from_uri
+from tiled.structures.data_source import Asset, DataSource
+from tiled.structures.table import TableStructure
 from torchvision import transforms
 
 from datasets import CustomDirectoryDataset, CustomTiledDataset
@@ -176,3 +179,44 @@ def embed_imgs(model, data_loader):
         embed_list.append(z)
         reconstruct_list.append(x_hat)
     return torch.cat(embed_list, dim=0), torch.cat(reconstruct_list, dim=0)
+
+
+def write_results(feature_vectors, io_parameters, feature_vectors_path, metadata=None):
+    # Prepare Tiled parent node
+    uid_save = io_parameters.uid_save
+    write_client = from_uri(
+        io_parameters.result_tiled_uri, api_key=io_parameters.result_tiled_api_key
+    )
+    parent_node = write_client["feature_vectors"]
+
+    # Save latent vectors to Tiled
+    structure = TableStructure.from_pandas(feature_vectors)
+
+    # Remove API keys from metadata
+    if metadata:
+        metadata["io_parameters"].pop("data_tiled_api_key", None)
+        metadata["io_parameters"].pop("result_tiled_api_key", None)
+
+    frame = parent_node.new(
+        structure_family="table",
+        data_sources=[
+            DataSource(
+                structure_family="table",
+                structure=structure,
+                mimetype="application/octet-stream",
+                assets=[
+                    Asset(
+                        data_uri=f"file://{feature_vectors_path}",
+                        is_directory=False,
+                        parameter="data_uris",
+                        num=1,
+                    )
+                ],
+            )
+        ],
+        metadata=metadata,
+        key=uid_save,
+    )
+
+    frame.write(feature_vectors)
+    pass

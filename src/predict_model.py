@@ -11,7 +11,7 @@ import torch
 import yaml
 from PIL import Image
 
-from helper_utils import embed_imgs, get_dataloaders
+from helper_utils import embed_imgs, get_dataloaders, write_results
 from parameters import InferenceParameters, IOParameters
 from src.model import Autoencoder, Decoder, Encoder  # noqa: F401
 
@@ -73,6 +73,8 @@ if __name__ == "__main__":
     df = pd.DataFrame(inference_img_embeds.cpu().detach().numpy())
     df.columns = df.columns.astype(str)
     df.to_parquet(f"{output_dir}/f_vectors.parquet", engine="pyarrow")
+
+    write_results(df, io_parameters, f"{output_dir}/f_vectors.parquet", parameters)
     logger.info("Latent space representation saved")
 
     # Reconstructed images
