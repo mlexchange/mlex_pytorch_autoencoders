@@ -76,6 +76,7 @@ if __name__ == "__main__":
         gpus=1 if str(device).startswith("cuda") else 0,
         max_epochs=tune_parameters.num_epochs,
         enable_progress_bar=False,
+        profiler=tune_parameters.profiler.value,
         callbacks=[
             ModelCheckpoint(
                 dirpath=output_dir,

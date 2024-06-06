@@ -99,6 +99,12 @@ class DataAugmentation(BaseModel):
     detector_name: Optional[str] = Field(description="detector name")
 
 
+class Profiler(Enum):
+    simple = "simple"
+    advanced = "advanced"
+    none = None
+
+
 class TuningParameters(DataAugmentation):
     shuffle: bool = Field(description="shuffle data")
     batch_size: int = Field(description="batch size")
@@ -111,12 +117,14 @@ class TuningParameters(DataAugmentation):
     learning_rate: float = Field(description="learning rate")
     seed: Optional[int] = Field(description="random seed")
     num_workers: Optional[int] = Field(description="number of workers")
+    profiler: Optional[Profiler] = None
 
 
 class TrainingParameters(TuningParameters):
     latent_dim: int = Field(description="latent space dimension")
     depth: int = Field(description="Network depth")
     base_channel_size: int = Field(description="number of base channels")
+    profiler: Optional[Profiler] = None
 
 
 class EvaluationParameters(TrainingParameters):

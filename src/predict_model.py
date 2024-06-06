@@ -1,5 +1,6 @@
 import argparse
 import logging
+import time
 import warnings
 from pathlib import Path
 
@@ -60,7 +61,9 @@ if __name__ == "__main__":
     model = Autoencoder.load_from_checkpoint(io_parameters.model_dir)
 
     # Get latent space representation of inference images and reconstructed images
+    start = time.time()
     inference_img_embeds, inference_result = embed_imgs(model, inference_loader)
+    logger.info(f"Time taken to embed images: {time.time() - start:.2f} seconds")
 
     # Create output directory if it does not exist
     output_dir = Path(f"{io_parameters.output_dir}/{io_parameters.uid_save}")
@@ -82,6 +85,7 @@ if __name__ == "__main__":
     else:
         colormode = "L"
 
+    start = time.time()
     # Save reconstructed images
     for indx in range(inference_result.shape[0]):
         im = Image.fromarray(
@@ -89,4 +93,4 @@ if __name__ == "__main__":
         )
         im = im.convert(colormode)
         im.save(f"{output_dir}/reconstructed_{indx}.jpg")
-    logger.info("Reconstructed images saved")
+    logger.info(f"Reconstructed images saved in {time.time() - start:.2f} seconds")
