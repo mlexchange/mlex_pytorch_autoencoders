@@ -1,26 +1,38 @@
-[tool.poetry]
+[project]
 name = "mlex_pytorch_autoencoders"
-version = "0.2.0"
+version = "0.2.1"
 description = ""
 readme = "README.md"
+requires-python = ">=3.9"
 packages = [
     { include = "src/**/*" }
 ]
 authors = ["MLExchange"]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-einops = "0.7.0"
-pandas = "2.1.1"
-Pillow = ">=10.2.0"
-pyarrow = ">=14.0.1"
-pydantic = "1.8.2"
-torchvision = "*"
-pyFAI = "2023.9.0"
-pytorch-lightning = "1.8.6"
-pyyaml = "*"
-tiled = { version = "0.1.0a107", extras = ["client"] }
+dependencies = [
+    "einops==0.7.0",
+    "pandas==2.1.1",
+    "Pillow>=10.2.0",
+    "pyarrow>=14.0.1",
+    "pydantic==1.8.2",
+    "pytorch-lightning==1.8.6",
+    "tifffile",
+    "tiled[client]==0.1.0a118",
+    "torchvision==0.17.2",
+    "pyFAI==2023.9.0",
+    "pyyaml",
+]
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[project.optional-dependencies]
+# These are required for developing the package (running the tests, building
+# the documentation) but not necessarily required for _using_ it.
+dev = [
+    "black==24.2.0",
+    "flake8==7.0.0",
+    "pre-commit==3.6.2",
+    "isort==5.13.2",
+    "pytest"
+]
+
+[tool.isort]
+profile = "black"
