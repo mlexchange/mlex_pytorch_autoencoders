@@ -78,6 +78,8 @@ def get_dataloaders(
     data_transform = []
     if num_workers > 0:
         persistent_workers = True
+    else:
+        persistent_workers = False
 
     if train:
         # Definition of data transforms

@@ -30,7 +30,7 @@ if __name__ == "__main__":
     device = (
         torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     )
-    logger.info("Device:", device)
+    logger.info("Device:" + str(device))
 
     if inference_parameters.target_width * inference_parameters.target_height > 0:
         target_size = (
