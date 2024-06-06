@@ -4,6 +4,26 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 
+class DataType(str, Enum):
+    tiled = "tiled"
+    file = "file"
+
+
+class IOParameters(BaseModel):
+    data_uris: List[str] = Field(description="directory containing the data")
+    data_type: DataType = Field(description="type of data")
+    root_uri: str = Field(description="root URI containing the data")
+    model_dir: str = Field(description="directory containing the model")
+    output_dir: str = Field(
+        description="directory to create the inference results folder"
+    )
+    uid_save: str = Field(description="uid to save models, metrics and etc")
+    uid_retrieve: Optional[str] = Field(
+        description="optional, uid to retrieve models for inference"
+    )
+    data_tiled_api_key: Optional[str] = Field(description="API key for data tiled")
+
+
 class Optimizer(str, Enum):
     adadelta = "Adadelta"
     adagrad = "Adagrad"
@@ -75,8 +95,8 @@ class DataAugmentation(BaseModel):
         description="Ground truth changes (or not) according to \
                                            selected transformations"
     )
-    data_key: Optional[str] = Field(description="keyword for data in NPZ")
     log: Optional[bool] = Field(description="log information")
+    detector_name: Optional[str] = Field(description="detector name")
 
 
 class TuningParameters(DataAugmentation):

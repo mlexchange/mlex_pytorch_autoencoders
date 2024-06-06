@@ -7,3 +7,5 @@ pytorch-lightning==1.8.6
 tifffile
 tiled[client]==0.1.0a116
 torchvision==0.17.2
+pyFAI==2023.9.0
+pyyaml

@@ -1,4 +1,3 @@
-import pandas as pd
 import torch
 from torchvision import transforms
 
@@ -24,7 +23,9 @@ def split_dataset(dataset, val_pct):
 
 
 def get_dataloaders(
-    data,
+    data_uris,
+    root_uri,
+    data_type,
     batch_size,
     num_workers,
     shuffle=False,
@@ -39,11 +40,15 @@ def get_dataloaders(
     augm_invariant=False,
     log=False,
     train=True,
+    api_key=None,
+    detector_name=None,
 ):
     """
     This function creates the dataloaders in PyTorch from directory or npy files
     Args:
-        data:           [str] File path to data details
+        data_uris:      List[str] List of data URIs
+        data_type:      [str] Type of data
+        root_uri:       [str] Root URI
         batch_size:     [int] Batch size
         num_workers:    [int] Number of workers
         shuffle:        [bool] Shuffle data
@@ -69,12 +74,14 @@ def get_dataloaders(
         val_pct:        [int] Percentage for validation [0-100]
         augm_invariant: [bool] Ground truth changes (or not) according to selected transformations
         log:            [bool] Log information
+        api_key:        [str] API key for tiled
+        detector_name:  [str] Detector name
     Returns:
         PyTorch DataLoaders
         Image size, e.g. (input_channels, width, height)
+        List of data URIs
     """
     # Load data information
-    data_info = pd.read_parquet(data, engine="pyarrow")
     data_transform = []
     if num_workers > 0:
         persistent_workers = True
@@ -93,10 +100,9 @@ def get_dataloaders(
             data_transform.append(transforms.RandomVerticalFlip(p=vert_flip_prob))
         data_transform.append(transforms.ToTensor())
 
-        local_uri = data_info["uri"]
         # Create dataset and dataloaders
         dataset = CustomDirectoryDataset(
-            local_uri, target_size, data_transform, augm_invariant, log
+            data_uris, target_size, data_transform, augm_invariant, log
         )
         (input_channels, width, height) = dataset[0][0].shape
 
@@ -124,18 +130,18 @@ def get_dataloaders(
         else:
             data_loader = [train_loader, None]
     else:
-        if data_info["type"][0] == "tiled":
+        if data_type == "tiled":
             dataset = CustomTiledDataset(
-                data_info["root_uri"].tolist()[0],
-                data_info["sub_uris"].tolist(),
+                root_uri,
+                data_uris,
                 target_size,
                 log,
-                data_info["api_key"].tolist()[0],
+                api_key,
             )
         else:
             data_transform.append(transforms.ToTensor())
             dataset = CustomDirectoryDataset(
-                data_info["uri"], target_size, data_transform, augm_invariant, log
+                data_uris, target_size, data_transform, augm_invariant, log
             )
 
         (input_channels, width, height) = dataset[0][0].shape

@@ -205,7 +205,10 @@ class Autoencoder(pl.LightningModule):
         act_fn: object = nn.GELU,
     ):
         super().__init__()
-        self.optimizer = getattr(optim, optimizer.value)
+        if isinstance(optimizer, Enum):
+            self.optimizer = getattr(optim, optimizer.value)
+        else:
+            self.optimizer = optimizer
         self.learning_rate = learning_rate
         self.step_size = step_size
         self.gamma = gamma

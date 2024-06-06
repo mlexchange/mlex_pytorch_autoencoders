@@ -1,5 +1,4 @@
 import argparse
-import json
 import logging
 import warnings
 from pathlib import Path
@@ -8,11 +7,12 @@ import einops
 import numpy as np
 import pandas as pd
 import torch
+import yaml
 from PIL import Image
 
 from helper_utils import embed_imgs, get_dataloaders
-from model import Autoencoder
-from parameters import InferenceParameters
+from parameters import InferenceParameters, IOParameters
+from src.model import Autoencoder, Decoder, Encoder  # noqa: F401
 
 warnings.filterwarnings("ignore")
 logger = logging.getLogger("pytorch_lightning")
@@ -20,12 +20,14 @@ logger = logging.getLogger("pytorch_lightning")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--data_info", help="path to dataframe of filepaths")
-    parser.add_argument("-m", "--model_dir", help="input directory")
-    parser.add_argument("-o", "--output_dir", help="output directory")
-    parser.add_argument("-p", "--parameters", help="list of training parameters")
+    parser.add_argument("yaml_path", type=str, help="path of yaml file for parameters")
     args = parser.parse_args()
-    inference_parameters = InferenceParameters(**json.loads(args.parameters))
+
+    with open(args.yaml_path, "r") as file:
+        parameters = yaml.safe_load(file)
+
+    io_parameters = IOParameters.parse_obj(parameters["io_parameters"])
+    inference_parameters = InferenceParameters.parse_obj(parameters)
 
     device = (
         torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
@@ -40,31 +42,34 @@ if __name__ == "__main__":
     else:
         target_size = None
 
+    # Define dataloaders
     inference_loader, (temp_channels, temp_w, temp_h) = get_dataloaders(
-        args.data_info,
+        io_parameters.data_uris,
+        io_parameters.root_uri,
+        io_parameters.data_type,
         inference_parameters.batch_size,
         inference_parameters.num_workers,
         shuffle=False,
         target_size=target_size,
         log=inference_parameters.log,
         train=False,
+        api_key=io_parameters.data_tiled_api_key,
+        detector_name=inference_parameters.detector_name,
     )
 
-    model = Autoencoder.load_from_checkpoint(args.model_dir + "/last.ckpt")
-    logger.info("Model loaded")
+    model = Autoencoder.load_from_checkpoint(io_parameters.model_dir)
 
     # Get latent space representation of inference images and reconstructed images
     inference_img_embeds, inference_result = embed_imgs(model, inference_loader)
-    logger.info("Inference images embedded")
 
     # Create output directory if it does not exist
-    output_dir = Path(args.output_dir)
+    output_dir = Path(f"{io_parameters.output_dir}/{io_parameters.uid_save}")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Save latent space representation of inference images
     df = pd.DataFrame(inference_img_embeds.cpu().detach().numpy())
     df.columns = df.columns.astype(str)
-    df.to_parquet(f"{args.output_dir}/f_vectors.parquet", engine="pyarrow")
+    df.to_parquet(f"{output_dir}/f_vectors.parquet", engine="pyarrow")
     logger.info("Latent space representation saved")
 
     # Reconstructed images
@@ -83,5 +88,5 @@ if __name__ == "__main__":
             (np.squeeze(inference_result[indx]) * 255).astype(np.uint8)
         )
         im = im.convert(colormode)
-        im.save(f"{args.output_dir}/reconstructed_{indx}.jpg")
+        im.save(f"{output_dir}/reconstructed_{indx}.jpg")
     logger.info("Reconstructed images saved")

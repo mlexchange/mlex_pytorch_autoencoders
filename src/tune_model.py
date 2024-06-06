@@ -1,5 +1,4 @@
 import argparse
-import json
 import logging
 import warnings
 
@@ -7,11 +6,12 @@ import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import yaml
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 from helper_utils import get_dataloaders
-from model import Autoencoder
-from parameters import TuningParameters
+from parameters import IOParameters, TuningParameters
+from src.model import Autoencoder, Decoder, Encoder  # noqa: F401
 
 SEED = 0
 
@@ -21,12 +21,14 @@ logger = logging.getLogger("pytorch_lightning")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--data_info", help="path to dataframe of filepaths")
-    parser.add_argument("-m", "--model_dir", help="input directory")
-    parser.add_argument("-o", "--output_dir", help="output directory")
-    parser.add_argument("-p", "--parameters", help="list of training parameters")
+    parser.add_argument("yaml_path", type=str, help="path of yaml file for parameters")
     args = parser.parse_args()
-    tune_parameters = TuningParameters(**json.loads(args.parameters))
+
+    with open(args.yaml_path, "r") as file:
+        parameters = yaml.safe_load(file)
+
+    io_parameters = IOParameters.parse_obj(parameters["io_parameters"])
+    tune_parameters = TuningParameters.parse_obj(parameters)
 
     if tune_parameters.seed:
         seed = tune_parameters.seed  # Setting the user-defined seed
@@ -46,7 +48,9 @@ if __name__ == "__main__":
         target_size = None
 
     [train_loader, val_loader], (input_channels, width, height) = get_dataloaders(
-        args.data_info,
+        io_parameters.data_uris,
+        io_parameters.root_uri,
+        io_parameters.data_type,
         tune_parameters.batch_size,
         tune_parameters.num_workers,
         tune_parameters.shuffle,
@@ -60,16 +64,21 @@ if __name__ == "__main__":
         tune_parameters.val_pct,
         tune_parameters.augm_invariant,
         tune_parameters.log,
+        api_key=io_parameters.data_tiled_api_key,
+        detector_name=tune_parameters.detector_name,
     )
 
+    output_dir = io_parameters.output_dir
+    model_dir = io_parameters.model_dir
+
     trainer = pl.Trainer(
-        default_root_dir=args.output_dir,
+        default_root_dir=output_dir,
         gpus=1 if str(device).startswith("cuda") else 0,
         max_epochs=tune_parameters.num_epochs,
         enable_progress_bar=False,
         callbacks=[
             ModelCheckpoint(
-                dirpath=args.output_dir,
+                dirpath=output_dir,
                 save_last=True,
                 filename="checkpoint_file",
                 save_weights_only=True,
@@ -77,8 +86,8 @@ if __name__ == "__main__":
         ],
     )
 
-    model = Autoencoder.load_from_checkpoint(args.model_dir + "/last.ckpt")
-    model.define_save_loss_dir(args.output_dir)
+    model = Autoencoder.load_from_checkpoint(model_dir + "/last.ckpt")
+    model.define_save_loss_dir(output_dir)
     model.optimizer = getattr(optim, tune_parameters.optimizer.value)
     criterion = getattr(nn, tune_parameters.criterion.value)
     model.criterion = criterion()
