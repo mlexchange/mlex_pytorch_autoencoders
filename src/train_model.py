@@ -59,6 +59,7 @@ if __name__ == "__main__":
         train_parameters.val_pct,
         train_parameters.augm_invariant,
         train_parameters.log,
+        train_parameters.percentiles,
     )
 
     trainer = pl.Trainer(

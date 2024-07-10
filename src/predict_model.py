@@ -47,6 +47,7 @@ if __name__ == "__main__":
         shuffle=False,
         target_size=target_size,
         log=inference_parameters.log,
+        percentiles=inference_parameters.percentiles,
         train=False,
     )
 

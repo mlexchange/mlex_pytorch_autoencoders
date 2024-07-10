@@ -2,7 +2,7 @@ import pandas as pd
 import torch
 from torchvision import transforms
 
-from datasets import CustomDirectoryDataset, CustomTiledDataset
+from src.datasets import CustomDirectoryDataset, CustomTiledDataset
 
 
 def split_dataset(dataset, val_pct):
@@ -38,6 +38,7 @@ def get_dataloaders(
     val_pct=0,
     augm_invariant=False,
     log=False,
+    percentiles=[0, 100],
     train=True,
 ):
     """
@@ -69,6 +70,8 @@ def get_dataloaders(
         val_pct:        [int] Percentage for validation [0-100]
         augm_invariant: [bool] Ground truth changes (or not) according to selected transformations
         log:            [bool] Log information
+        percentiles:    [list] Percentiles for normalization
+        train:          [bool] Train or test
     Returns:
         PyTorch DataLoaders
         Image size, e.g. (input_channels, width, height)
@@ -94,9 +97,10 @@ def get_dataloaders(
         data_transform.append(transforms.ToTensor())
 
         local_uri = data_info["uri"]
+        # local_uri = [uri.replace("/app/work/data", "/media/tanchavez/Data/733_open") for uri in local_uri]
         # Create dataset and dataloaders
         dataset = CustomDirectoryDataset(
-            local_uri, target_size, data_transform, augm_invariant, log
+            local_uri, target_size, data_transform, augm_invariant, log, percentiles
         )
         (input_channels, width, height) = dataset[0][0].shape
 
@@ -124,18 +128,26 @@ def get_dataloaders(
         else:
             data_loader = [train_loader, None]
     else:
+        data_transform.append(transforms.ToTensor())
         if data_info["type"][0] == "tiled":
             dataset = CustomTiledDataset(
                 data_info["root_uri"].tolist()[0],
                 data_info["sub_uris"].tolist(),
                 target_size,
-                log,
-                data_info["api_key"].tolist()[0],
+                augmentation=data_transform,
+                augm_invariant=augm_invariant,
+                log=log,
+                percentiles=percentiles,
+                api_key=data_info["api_key"].tolist()[0],
             )
         else:
-            data_transform.append(transforms.ToTensor())
             dataset = CustomDirectoryDataset(
-                data_info["uri"], target_size, data_transform, augm_invariant, log
+                data_info["uri"],
+                target_size,
+                data_transform,
+                augm_invariant,
+                log,
+                percentiles,
             )
 
         (input_channels, width, height) = dataset[0][0].shape

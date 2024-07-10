@@ -75,8 +75,8 @@ class DataAugmentation(BaseModel):
         description="Ground truth changes (or not) according to \
                                            selected transformations"
     )
-    data_key: Optional[str] = Field(description="keyword for data in NPZ")
-    log: Optional[bool] = Field(description="log information")
+    log: Optional[bool] = False
+    percentiles: Optional[list] = [0, 100]
 
 
 class TuningParameters(DataAugmentation):
