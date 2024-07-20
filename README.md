@@ -1,4 +1,12 @@
 # mlex_pytorch_autoencoders
+Tunable autoencoders implemented with [PyTorch](https://pytorch.org/). These autoencoders can be deployed through [Data Clinic](https://github.com/mlexchange/mlex_data_clinic)
+
+See the [Getting started](./docs/getting_started.md) for instructions on using the package.
+
+See the [Concepts](./docs/concepts.md) for technical details.
+
+## Data Ingestion
+Datasets can be retrieved from filesystem and [Tiled](https://blueskyproject.io/tiled/).
 
 ## Copyright
 MLExchange Copyright (c) 2023, The Regents of the University of California,

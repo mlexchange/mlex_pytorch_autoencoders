@@ -1,10 +1,10 @@
 {
     "content_type": "model",
-    "name": "pytorch_autoencoder",
-    "version": "0.0.4",
+    "name": "pytorch_autoencoder_v0.0.5",
+    "version": "0.0.5",
     "type": "unsupervised",
     "owner": "mlexchange team",
-    "uri": "ghcr.io/mlexchange/mlex_pytorch_autoencoders:main",
+    "uri": "ghcr.io/mlexchange/mlex_pytorch_autoencoders_v0_0_5:main",
     "application": [
         "data_clinic"
     ],
@@ -116,12 +116,16 @@
             "title": "Batch Size",
             "param_key": "batch_size",
             "min": 16,
-            "max": 128,
+            "max": 512,
             "step": 16,
             "value": 32,
             "marks": {
                 "16": "16",
-                "128": "128"
+                "32": "32",
+                "64": "64",
+                "128": "128",
+                "256": "256",
+                "512": "512"
             },
             "comp_group": "train_model"
         },
@@ -365,6 +369,14 @@
             "comp_group": "train_model"
         },
         {
+            "type": "int",
+            "name": "num_workers",
+            "title": "Number of workers",
+            "param_key": "num_workers",
+            "value": 2,
+            "comp_group": "train_model"
+        },
+        {
             "type": "float",
             "name": "horz_flip_prob",
             "title": "Data Augmentation: Probability of Horizontal Flip",
@@ -454,12 +466,16 @@
             "title": "Batch Size",
             "param_key": "batch_size",
             "min": 16,
-            "max": 128,
+            "max": 512,
             "step": 16,
             "value": 32,
             "marks": {
                 "16": "16",
-                "128": "128"
+                "32": "32",
+                "64": "64",
+                "128": "128",
+                "256": "256",
+                "512": "512"
             },
             "comp_group": "tune_model"
         },
@@ -658,17 +674,29 @@
             "comp_group": "tune_model"
         },
         {
+            "type": "int",
+            "name": "num_workers",
+            "title": "Number of workers",
+            "param_key": "num_workers",
+            "value": 2,
+            "comp_group": "tune_model"
+        },
+        {
             "type": "slider",
             "name": "batch_size",
             "title": "Batch Size",
             "param_key": "batch_size",
             "min": 16,
-            "max": 128,
+            "max": 512,
             "step": 16,
             "value": 32,
             "marks": {
                 "16": "16",
-                "128": "128"
+                "32": "32",
+                "64": "64",
+                "128": "128",
+                "256": "256",
+                "512": "512"
             },
             "comp_group": "prediction_model"
         },
@@ -678,6 +706,14 @@
             "title": "Seed",
             "param_key": "seed",
             "value": 0,
+            "comp_group": "prediction_model"
+        },
+        {
+            "type": "int",
+            "name": "num_workers",
+            "title": "Number of workers",
+            "param_key": "num_workers",
+            "value": 2,
             "comp_group": "prediction_model"
         }
     ],
