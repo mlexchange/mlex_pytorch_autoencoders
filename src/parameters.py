@@ -14,16 +14,14 @@ class IOParameters(BaseModel):
     data_type: DataType = Field(description="type of data")
     root_uri: str = Field(description="root URI containing the data")
     model_dir: str = Field(description="directory containing the model")
-    output_dir: str = Field(
-        description="directory to create the inference results folder"
-    )
+    results_dir: str = Field(description="directory to save the results")
     uid_save: str = Field(description="uid to save models, metrics and etc")
     uid_retrieve: Optional[str] = Field(
         description="optional, uid to retrieve models for inference"
     )
     data_tiled_api_key: Optional[str] = Field(description="API key for data tiled")
-    result_tiled_uri: str = Field(description="tiled uri to save data to")
-    result_tiled_api_key: Optional[str] = Field(description="tiled api key")
+    results_tiled_uri: str = Field(description="tiled uri to save results to")
+    results_tiled_api_key: Optional[str] = Field(description="tiled api key")
 
 
 class Optimizer(str, Enum):

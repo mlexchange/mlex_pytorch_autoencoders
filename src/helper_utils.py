@@ -1,10 +1,93 @@
+import glob
+import os
+from functools import reduce
+
+import numpy as np
 import torch
 from tiled.client import from_uri
-from tiled.structures.data_source import Asset, DataSource
+from tiled.structures.array import ArrayStructure, BuiltinDtype  # noqa: F401
+from tiled.structures.core import StructureFamily  # noqa: F401
+from tiled.structures.data_source import Asset, DataSource, Management  # noqa: F401
 from tiled.structures.table import TableStructure
 from torchvision import transforms
 
 from datasets import CustomDirectoryDataset, CustomTiledDataset
+
+FORMATS = [
+    "*.[pP][nN][gG]",
+    "*.[jJ][pP][gG]",
+    "*.[jJ][pP][eE][gG]",
+    "*.[tT][iI][fF]",
+    "*.[tT][iI][fF][fF]",
+]
+
+NOT_ALLOWED_FORMATS = [
+    "**/__pycache__/**",
+    "**/.*",
+    "cache/",
+    "cache/**/",
+    "cache/**",
+    "tiled_local_copy/",
+    "**/tiled_local_copy/**",
+    "**/tiled_local_copy/**/",
+    "mlexchange_store/**/",
+    "mlexchange_store/**",
+    "labelmaker_outputs/**/",
+    "labelmaker_outputs/**",
+]
+
+
+def filepaths_from_directory(
+    root_uri, selected_sub_uris=None, formats=FORMATS, sort=True
+):
+    """
+    This function returns the list of file paths from the directory
+    Args:
+        root_uri:           [str] Root URI
+        selected_sub_uris:  [list] List of selected sub URIs
+    Returns:
+        List of file paths
+    """
+    filenames = []
+    for dataset in selected_sub_uris:
+        dataset_path = os.path.join(root_uri, dataset)
+        if os.path.isdir(dataset_path):
+            # Find paths that match the format of interest
+            all_paths = list(
+                reduce(
+                    lambda list1, list2: list1 + list2,
+                    (
+                        [
+                            path
+                            for path in glob.glob(
+                                str(dataset_path) + "/" + t, recursive=False
+                            )
+                        ]
+                        for t in formats
+                    ),
+                )
+            )
+            # Find paths that match the not allowed file/directory formats
+            not_allowed_paths = list(
+                reduce(
+                    lambda list1, list2: list1 + list2,
+                    (
+                        [
+                            path
+                            for path in glob.glob(
+                                str(dataset_path) + "/" + t, recursive=False
+                            )
+                        ]
+                        for t in NOT_ALLOWED_FORMATS
+                    ),
+                )
+            )
+            # Remove not allowed filepaths from filepaths of interest
+            paths = list(set(all_paths) - set(not_allowed_paths))
+            if sort:
+                paths.sort()
+            filenames += paths
+    return filenames
 
 
 def split_dataset(dataset, val_pct):
@@ -26,7 +109,7 @@ def split_dataset(dataset, val_pct):
 
 
 def get_dataloaders(
-    data_uris,
+    sub_uris,
     root_uri,
     data_type,
     batch_size,
@@ -49,7 +132,7 @@ def get_dataloaders(
     """
     This function creates the dataloaders in PyTorch from directory or npy files
     Args:
-        data_uris:      List[str] List of data URIs
+        sub_uris:       List[str] List of data URIs
         data_type:      [str] Type of data
         root_uri:       [str] Root URI
         batch_size:     [int] Batch size
@@ -90,6 +173,8 @@ def get_dataloaders(
         persistent_workers = True
     else:
         persistent_workers = False
+
+    data_uris = filepaths_from_directory(root_uri, selected_sub_uris=sub_uris)
 
     if train:
         # Definition of data transforms
@@ -181,13 +266,20 @@ def embed_imgs(model, data_loader):
     return torch.cat(embed_list, dim=0), torch.cat(reconstruct_list, dim=0)
 
 
-def write_results(feature_vectors, io_parameters, feature_vectors_path, metadata=None):
+def write_results(
+    feature_vectors,
+    io_parameters,
+    feature_vectors_path,
+    reconstructions,
+    recons_size,
+    metadata=None,
+):
     # Prepare Tiled parent node
     uid_save = io_parameters.uid_save
     write_client = from_uri(
-        io_parameters.result_tiled_uri, api_key=io_parameters.result_tiled_api_key
+        io_parameters.results_tiled_uri, api_key=io_parameters.results_tiled_api_key
     )
-    parent_node = write_client["feature_vectors"]
+    write_client = write_client.create_container(key=uid_save)
 
     # Save latent vectors to Tiled
     structure = TableStructure.from_pandas(feature_vectors)
@@ -195,15 +287,15 @@ def write_results(feature_vectors, io_parameters, feature_vectors_path, metadata
     # Remove API keys from metadata
     if metadata:
         metadata["io_parameters"].pop("data_tiled_api_key", None)
-        metadata["io_parameters"].pop("result_tiled_api_key", None)
+        metadata["io_parameters"].pop("results_tiled_api_key", None)
 
-    frame = parent_node.new(
+    frame = write_client.new(
         structure_family="table",
         data_sources=[
             DataSource(
                 structure_family="table",
                 structure=structure,
-                mimetype="application/octet-stream",
+                mimetype="application/x-parquet",
                 assets=[
                     Asset(
                         data_uri=f"file://{feature_vectors_path}",
@@ -215,8 +307,46 @@ def write_results(feature_vectors, io_parameters, feature_vectors_path, metadata
             )
         ],
         metadata=metadata,
-        key=uid_save,
+        key="feature_vectors",
     )
 
     frame.write(feature_vectors)
+
+    # Save reconstructions to Tiled
+    # structure = ArrayStructure(
+    #     data_type=BuiltinDtype.from_numpy_dtype(np.dtype('int32')),
+    #     shape=recons_size,
+    #     chunks=((1,)*recons_size[0], (recons_size[1],), (recons_size[2],))
+    # )
+
+    write_client.write_array(
+        reconstructions.astype(np.float32),
+        metadata=metadata,
+        key="reconstructions",
+    )
+
+    # write_client.new(
+    #     structure_family=StructureFamily.array,
+    #     data_sources=[
+    #         DataSource(
+    #             management=Management.external,
+    #             mimetype="multipart/related;type=image/tiff",
+    #             structure_family=StructureFamily.array,
+    #         structure=structure,
+    #             assets=[
+    #                 Asset(
+    #                     data_uri=f"file://{filepath}",
+    #                     is_directory=False,
+    #                     parameter="data_uri",
+    #                     num=count
+    #                 )
+    #                 for count, filepath
+    #                 in enumerate(reconstructions)
+    #             ],
+    #         ),
+    #     ],
+    #     metadata=metadata,
+    #     key="reconstructions",
+    # )
+
     pass
