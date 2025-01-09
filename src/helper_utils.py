@@ -5,13 +5,9 @@ from functools import reduce
 import numpy as np
 import torch
 from tiled.client import from_uri
-from tiled.structures.array import ArrayStructure, BuiltinDtype  # noqa: F401
-from tiled.structures.core import StructureFamily  # noqa: F401
-from tiled.structures.data_source import Asset, DataSource, Management  # noqa: F401
+from tiled.structures.data_source import Asset, DataSource
 from tiled.structures.table import TableStructure
 from torchvision import transforms
-
-from datasets import CustomDirectoryDataset, CustomTiledDataset
 
 FORMATS = [
     "*.[pP][nN][gG]",
@@ -108,142 +104,41 @@ def split_dataset(dataset, val_pct):
     return train_set, val_set
 
 
-def get_dataloaders(
-    sub_uris,
-    root_uri,
-    data_type,
-    batch_size,
-    num_workers,
-    shuffle=False,
-    target_size=None,
-    horz_flip_prob=0,
-    vert_flip_prob=0,
+def setup_data_transformations(
     brightness=0,
     contrast=0,
     saturation=0,
     hue=0,
-    val_pct=0,
-    augm_invariant=False,
-    log=False,
-    train=True,
-    api_key=None,
-    detector_name=None,
+    horz_flip_prob=0,
+    vert_flip_prob=0,
 ):
     """
-    This function creates the dataloaders in PyTorch from directory or npy files
-    Args:
-        sub_uris:       List[str] List of data URIs
-        data_type:      [str] Type of data
-        root_uri:       [str] Root URI
-        batch_size:     [int] Batch size
-        num_workers:    [int] Number of workers
-        shuffle:        [bool] Shuffle data
-        target_size:    [tuple] Target size
-        horz_flip_prob: [float] Probability of horizontal flip
-        vert_flip_prob: [float] Probability of vertical flip
-        ############################################################################################
-        Following descriptions were taken from
-        https://pytorch.org/vision/main/generated/torchvision.transforms.ColorJitter.html
-        brightness:     [float, non negative] How much to jitter brightness, brightness_factor is
-                        chosen uniformly from [max(0, 1 - brightness), 1 + brightness]
-        contrast:       [float, non negative] How much to jitter contrast, contrast_factor is chosen
-                        uniformly from [max(0, 1 - contrast), 1 + contrast]
-        saturation:     [float, non negative] How much to jitter saturation. saturation_factor is
-                        chosen uniformly from [max(0, 1 - saturation), 1 + saturation].
-        hue:            [float] How much to jitter hue, hue_factor is chosen uniformly from
-                        [-hue, hue]. Should have 0<= hue <= 0.5 or -0.5 <= min <= max <= 0.5.
-                        To jitter hue, the pixel values of the input image has to be non-negative
-                        for conversion to HSV space; thus it does not work if you normalize your
-                        image to an interval with negative values, or use an interpolation that
-                        generates negative values before using this function.
-        ############################################################################################
-        val_pct:        [int] Percentage for validation [0-100]
-        augm_invariant: [bool] Ground truth changes (or not) according to selected transformations
-        log:            [bool] Log information
-        api_key:        [str] API key for tiled
-        detector_name:  [str] Detector name
-    Returns:
-        PyTorch DataLoaders
-        Image size, e.g. (input_channels, width, height)
-        List of data URIs
+    Following descriptions were taken from
+    https://pytorch.org/vision/main/generated/torchvision.transforms.ColorJitter.html
+    brightness:     [float, non negative] How much to jitter brightness, brightness_factor is
+                    chosen uniformly from [max(0, 1 - brightness), 1 + brightness]
+    contrast:       [float, non negative] How much to jitter contrast, contrast_factor is chosen
+                    uniformly from [max(0, 1 - contrast), 1 + contrast]
+    saturation:     [float, non negative] How much to jitter saturation. saturation_factor is
+                    chosen uniformly from [max(0, 1 - saturation), 1 + saturation].
+    hue:            [float] How much to jitter hue, hue_factor is chosen uniformly from
+                    [-hue, hue]. Should have 0<= hue <= 0.5 or -0.5 <= min <= max <= 0.5.
+                    To jitter hue, the pixel values of the input image has to be non-negative
+                    for conversion to HSV space; thus it does not work if you normalize your
+                    image to an interval with negative values, or use an interpolation that
+                    generates negative values before using this function.
     """
-    # Load data information
     data_transform = []
-    if num_workers > 0:
-        persistent_workers = True
-    else:
-        persistent_workers = False
-
-    data_uris = filepaths_from_directory(root_uri, selected_sub_uris=sub_uris)
-
-    if train:
-        # Definition of data transforms
-        if brightness > 0 or contrast > 0 or saturation > 0 or hue > 0:
-            data_transform.append(
-                transforms.ColorJitter(brightness, contrast, saturation, hue)
-            )
-        if horz_flip_prob > 0:
-            data_transform.append(transforms.RandomHorizontalFlip(p=horz_flip_prob))
-        if vert_flip_prob > 0:
-            data_transform.append(transforms.RandomVerticalFlip(p=vert_flip_prob))
-        data_transform.append(transforms.ToTensor())
-
-        # Create dataset and dataloaders
-        dataset = CustomDirectoryDataset(
-            data_uris, target_size, data_transform, augm_invariant, log
+    if brightness > 0 or contrast > 0 or saturation > 0 or hue > 0:
+        data_transform.append(
+            transforms.ColorJitter(brightness, contrast, saturation, hue)
         )
-        (input_channels, width, height) = dataset[0][0].shape
-
-        # Split dataset into train and validation
-        train_set, val_set = split_dataset(dataset, val_pct)
-        train_loader = torch.utils.data.DataLoader(
-            train_set,
-            shuffle=shuffle,
-            batch_size=batch_size,
-            num_workers=num_workers,
-            persistent_workers=persistent_workers,
-            pin_memory=True,
-        )
-
-        if val_pct > 0:
-            val_loader = torch.utils.data.DataLoader(
-                val_set,
-                shuffle=False,
-                batch_size=batch_size,
-                num_workers=num_workers,
-                persistent_workers=persistent_workers,
-                pin_memory=True,
-            )
-            data_loader = [train_loader, val_loader]
-        else:
-            data_loader = [train_loader, None]
-    else:
-        if data_type == "tiled":
-            dataset = CustomTiledDataset(
-                root_uri,
-                data_uris,
-                target_size,
-                log,
-                api_key,
-            )
-        else:
-            data_transform.append(transforms.ToTensor())
-            dataset = CustomDirectoryDataset(
-                data_uris, target_size, data_transform, augm_invariant, log
-            )
-
-        (input_channels, width, height) = dataset[0][0].shape
-
-        data_loader = torch.utils.data.DataLoader(
-            dataset,
-            shuffle=False,
-            batch_size=batch_size,
-            num_workers=num_workers,
-            persistent_workers=persistent_workers,
-            pin_memory=True,
-        )
-
-    return data_loader, (input_channels, width, height)
+    if horz_flip_prob > 0:
+        data_transform.append(transforms.RandomHorizontalFlip(p=horz_flip_prob))
+    if vert_flip_prob > 0:
+        data_transform.append(transforms.RandomVerticalFlip(p=vert_flip_prob))
+    data_transform.append(transforms.ToTensor())
+    return data_transform
 
 
 def embed_imgs(model, data_loader):
@@ -271,7 +166,6 @@ def write_results(
     io_parameters,
     feature_vectors_path,
     reconstructions,
-    recons_size,
     metadata=None,
 ):
     # Prepare Tiled parent node
@@ -312,41 +206,10 @@ def write_results(
 
     frame.write(feature_vectors)
 
-    # Save reconstructions to Tiled
-    # structure = ArrayStructure(
-    #     data_type=BuiltinDtype.from_numpy_dtype(np.dtype('int32')),
-    #     shape=recons_size,
-    #     chunks=((1,)*recons_size[0], (recons_size[1],), (recons_size[2],))
-    # )
-
     write_client.write_array(
         reconstructions.astype(np.float32),
         metadata=metadata,
         key="reconstructions",
     )
-
-    # write_client.new(
-    #     structure_family=StructureFamily.array,
-    #     data_sources=[
-    #         DataSource(
-    #             management=Management.external,
-    #             mimetype="multipart/related;type=image/tiff",
-    #             structure_family=StructureFamily.array,
-    #         structure=structure,
-    #             assets=[
-    #                 Asset(
-    #                     data_uri=f"file://{filepath}",
-    #                     is_directory=False,
-    #                     parameter="data_uri",
-    #                     num=count
-    #                 )
-    #                 for count, filepath
-    #                 in enumerate(reconstructions)
-    #             ],
-    #         ),
-    #     ],
-    #     metadata=metadata,
-    #     key="reconstructions",
-    # )
 
     pass
