@@ -9,6 +9,12 @@ class DataType(str, Enum):
     file = "file"
 
 
+class DetectorSource(str, Enum):
+    pyFAI = "pyFAI"
+    tiled = "tiled"
+    file = "file"
+
+
 class IOParameters(BaseModel):
     data_uris: List[str] = Field(description="directory containing the data")
     data_type: DataType = Field(description="type of data")
@@ -22,6 +28,13 @@ class IOParameters(BaseModel):
     data_tiled_api_key: Optional[str] = Field(description="API key for data tiled")
     results_tiled_uri: str = Field(description="tiled uri to save results to")
     results_tiled_api_key: Optional[str] = Field(description="tiled api key")
+    detector_uri: Optional[str] = Field(description="detector uri")
+    detector_source: Optional[DetectorSource] = Field(
+        description="detector source", default=DetectorSource.pyFAI
+    )
+    detector_tiled_api_key: Optional[str] = Field(
+        description="detector tiled api key", default=None
+    )
 
 
 class Optimizer(str, Enum):
@@ -66,34 +79,30 @@ class DataAugmentation(BaseModel):
     target_width: int = Field(description="data target width")
     target_height: int = Field(description="data target height")
     horz_flip_prob: Optional[float] = Field(
-        description="probability of the image being flipped \
-                                            horizontally"
+        description="probability of the image being flipped horizontally"
     )
     vert_flip_prob: Optional[float] = Field(
-        description="probability of the image being flipped \
-                                            vertically"
+        description="probability of the image being flipped vertically"
     )
     brightness: Optional[float] = Field(
-        description="how much to jitter brightness. brightness_factor \
-                                        is chosen uniformly from [max(0, 1 - brightness), 1 + brightness]"
+        description="how much to jitter brightness. brightness_factor is chosen uniformly from \
+            [max(0, 1 - brightness), 1 + brightness]"
     )
     contrast: Optional[float] = Field(
-        description="how much to jitter contrast. contrast_factor is \
-                                      chosen uniformly from [max(0, 1 - contrast), 1 + contrast]."
+        description="how much to jitter contrast. contrast_factor is chosen uniformly from \
+            [max(0, 1 - contrast), 1 + contrast]."
     )
     saturation: Optional[float] = Field(
-        description="how much to jitter saturation. saturation_factor \
-                                        is chosen uniformly from [max(0, 1 - saturation), 1 + saturation]. "
+        description="how much to jitter saturation. saturation_factor is chosen uniformly from \
+            [max(0, 1 - saturation), 1 + saturation]. "
     )
     hue: Optional[float] = Field(
-        description="how much to jitter hue. hue_factor is chosen uniformly \
-                                 from [-hue, hue]. Should have 0<= hue <= 0.5 or -0.5 <= min <= max \
-                                 <= 0.5. To jitter hue, the pixel values of the input image has to \
-                                 be non-negative for conversion to HSV space."
+        description="how much to jitter hue. hue_factor is chosen uniformly from [-hue, hue]. \
+            Should have 0<= hue <= 0.5 or -0.5 <= min <= max <= 0.5. To jitter hue, the pixel \
+            values of the input image has to be non-negative for conversion to HSV space."
     )
     augm_invariant: Optional[bool] = Field(
-        description="Ground truth changes (or not) according to \
-                                           selected transformations"
+        description="Ground truth changes (or not) according to selected transformations"
     )
     log: Optional[bool] = Field(description="log information")
     detector_name: Optional[str] = Field(description="detector name")
