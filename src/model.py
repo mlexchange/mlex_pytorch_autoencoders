@@ -222,7 +222,15 @@ class Autoencoder(pl.LightningModule):
         self.train_loss_summary = []
         self.validation_loss_summary = []
         # Saving hyperparameters of autoencoder
-        self.save_hyperparameters()
+        self.save_hyperparameters(
+            ignore=[
+                "optimizer",
+                "criterion",
+                "encoder_class",
+                "decoder_class",
+                "act_fn",
+            ]
+        )
         # Creating encoder and decoder
         self.encoder = encoder_class(
             num_input_channels,
