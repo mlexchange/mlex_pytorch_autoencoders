@@ -1,11 +1,10 @@
-FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-runtime
+FROM python:3.11
 
-COPY requirements.txt requirements.txt
+COPY . .
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        tree
+RUN apt-get update
 RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install .
 
 WORKDIR /app/work/
 COPY src/ src/
