@@ -61,13 +61,11 @@ You can use the docker image provided in this repository with the following step
 To train a model, please follow the following steps:
 
 1. Choose your dataset.
-   1. As a standalone application: Click on "Open File Manager", and upload your dataset 
-   as a ZIP file OR choose your `data_directory` from the table (click on "Browse",
-   choose a row from the table directory, and click "Import").
+   1. As a standalone application: Click on "Open File Manager", and choose your dataset.
    2. From [Label Maker](https://github.com/mlexchange/mlex_dash_labelmaker_demo): The 
    dataset you uploaded in Label Maker should be visible in Data Clinic by default at start-up.
    When selecting a different dataset in Label Maker after start-up, you can refresh the 
-   dataset in Data Clinic by clicking "Refresh Images".
+   dataset in Data Clinic by clicking "Refresh Project".
 2. Choose "Model Training" in Actions.
 3. Modify the [training parameters](./concepts.md) as needed.
 4. Click Execute.
@@ -83,13 +81,11 @@ clicking on it's corresponding cells.
 To test a mode, please follow the following steps:
 
 1. Choose your dataset.
-   1. As a standalone application: Click on "Open File Manager", and upload your dataset 
-   as a ZIP file OR choose your `data_directory` from the table (click on "Browse",
-   choose a row from the table directory, and click "Import").
+   1. As a standalone application: Click on "Open File Manager", and choose your dataset.
    2. From [Label Maker](https://github.com/mlexchange/mlex_dash_labelmaker_demo): The 
-   dataset you uploaded in Label Maker should be visible in MLCoach by default at start-up.
+   dataset you uploaded in Label Maker should be visible in Data Clinic by default at start-up.
    When selecting a different dataset in Label Maker after start-up, you can refresh the 
-   dataset in MLCoach by clicking "Refresh Images".
+   dataset in Data Clinic by clicking "Refresh Project".
 2. Choose "Test Prediction using Model" in Actions.
 3. Modify the [testing parameters](./concepts.md) as needed.
 4. Choose a trained model from the "List of Jobs".

@@ -13,10 +13,13 @@ definition of the following parameters:
 * Contrast: How much to jitter contrast.
 * Saturation: How much to jitter saturation.
 * Hue: How much to jitter hue.
+* Augmentation invariant: [Bool] Choose whether the target image is augmentation invariant. 
+* Log: [Bool] Apply log transformation
+* Percentiles: [List[int]] Apply percentile-normalization
 
 Further information can be found [here](https://pytorch.org/vision/main/generated/torchvision.transforms.ColorJitter.html).
 
-### Training setup
+### Training/Tuning setup
 * Latent Dimension: Dimension size of latent space (Lx1).
 * Shuffle: Shuffle dataset.
 * Batch Size: The number of images in a batch.
@@ -31,6 +34,7 @@ increased per side in the network architecture.
 each image has been seen once.
 * Seed: Initialization reference for the pseudo-random number generator. Set up this value 
 for the reproduction of the results.
+* Number of workers: Number of workers for data loading
 
 ## Output
 The output of the training step is the trained autoencoder.
