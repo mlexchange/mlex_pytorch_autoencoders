@@ -79,7 +79,7 @@ if __name__ == "__main__":
     )
 
     # Set up model directory
-    model_dir = Path(f"{io_parameters.model_dir}/{io_parameters.uid_save}")
+    model_dir = Path(f"{io_parameters.models_dir}/{io_parameters.uid_save}")
     model_dir.mkdir(parents=True, exist_ok=True)
 
     # Set up dvclive

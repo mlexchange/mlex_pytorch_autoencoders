@@ -15,11 +15,12 @@ class DetectorSource(str, Enum):
     file = "file"
 
 
+# TODO: Consider changing naming from detector to mask
 class IOParameters(BaseModel):
     data_uris: List[str] = Field(description="directory containing the data")
     data_type: DataType = Field(description="type of data")
     root_uri: str = Field(description="root URI containing the data")
-    model_dir: str = Field(description="directory containing the model")
+    models_dir: str = Field(description="directory containing the model")
     results_dir: str = Field(description="directory to save the results")
     uid_save: str = Field(description="uid to save models, metrics and etc")
     uid_retrieve: Optional[str] = Field(

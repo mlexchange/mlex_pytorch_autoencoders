@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     # Load model
     model = Autoencoder.load_from_checkpoint(
-        f"{io_parameters.model_dir}/{io_parameters.uid_retrieve}/last.ckpt"
+        f"{io_parameters.models_dir}/{io_parameters.uid_retrieve}/last.ckpt"
     )
 
     # Get latent space representation of inference images and reconstructed images
