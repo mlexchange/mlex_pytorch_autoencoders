@@ -312,7 +312,6 @@ class Autoencoder(pl.LightningModule):
         self.log("test_loss", loss, on_epoch=True)
 
     def on_train_epoch_end(self):
-        current_epoch = self.current_epoch
         num_batches = self.trainer.num_training_batches
         train_loss = self.train_loss
         validation_loss = self.validation_loss
@@ -320,17 +319,7 @@ class Autoencoder(pl.LightningModule):
         self.validation_loss_summary.append(validation_loss)
         self.train_loss = 0
         self.validation_loss = 0
-        print(
-            f"{current_epoch},{train_loss / num_batches},{validation_loss}", flush=True
-        )
-        # Write to CSV
-        with open(f"{self.dir_save_loss}/training_log.csv", "a", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow([current_epoch, train_loss / num_batches, validation_loss])
 
     def on_validation_epoch_end(self):
         num_batches = self.trainer.num_val_batches[0]  # may be a list[int]
         self.validation_loss = self.validation_loss / num_batches
-
-    def on_train_end(self):
-        print("Train process completed", flush=True)

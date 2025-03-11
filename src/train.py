@@ -1,5 +1,6 @@
 import argparse
 import logging
+import sys
 import time
 import warnings
 from pathlib import Path
@@ -15,10 +16,15 @@ from dataloaders import get_train_dataloaders
 from model import Autoencoder
 from parameters import IOParameters, TrainingParameters
 
-SEED = 0
+SEED = 42
 
 warnings.filterwarnings("ignore")
-logger = logging.getLogger("pytorch_lightning")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s: %(message)s",
+    stream=sys.stdout,  # Force all logs to stdout
+)
+logger = logging.getLogger(__name__)
 
 
 if __name__ == "__main__":
@@ -118,6 +124,5 @@ if __name__ == "__main__":
         model.define_save_loss_dir(model_dir)
 
         start = time.time()
-        logger.info("epoch,train_loss,val_loss")
         trainer.fit(model, train_loader, val_loader)
         logger.info(f"Training time: {time.time()-start}")
