@@ -5,6 +5,7 @@ import time
 import warnings
 from pathlib import Path
 
+import mlflow
 import pytorch_lightning as pl
 import torch
 import yaml
@@ -16,7 +17,7 @@ from dataloaders import get_train_dataloaders
 from model import Autoencoder
 from parameters import IOParameters, TrainingParameters
 
-import mlflow
+
 
 SEED = 42
 

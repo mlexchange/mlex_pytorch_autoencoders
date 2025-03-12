@@ -6,6 +6,7 @@ import warnings
 from pathlib import Path
 
 import einops
+import mlflow  
 import numpy as np
 import pandas as pd
 import torch
@@ -17,7 +18,6 @@ from helper_utils import embed_imgs, write_results
 from model import Autoencoder
 from parameters import InferenceParameters, IOParameters
 
-import mlflow
 
 warnings.filterwarnings("ignore")
 logging.basicConfig(
