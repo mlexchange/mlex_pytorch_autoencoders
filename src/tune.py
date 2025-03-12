@@ -1,5 +1,6 @@
 import argparse
 import logging
+import sys
 import time
 import warnings
 
@@ -16,10 +17,15 @@ from dataloaders import get_train_dataloaders
 from model import Autoencoder
 from parameters import IOParameters, TuningParameters
 
-SEED = 0
+SEED = 42
 
 warnings.filterwarnings("ignore")
-logger = logging.getLogger("pytorch_lightning")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s: %(message)s",
+    stream=sys.stdout,  # Force all logs to stdout
+)
+logger = logging.getLogger(__name__)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@
 This repository provides an machine learning (ML)-framework to train and test convolutional autoencoders for latent space exploration.
 
 ## Data Format
-Currently, this ML algorithm supports data access through [Tiled](https://blueskyproject.io/tiled/). or filesystem. The supported image formats are: TIFF, TIF, JPG, JPEG, and PNG.
+Currently, this ML algorithm supports data access through [Tiled](https://blueskyproject.io/tiled/) or filesystem. The supported image formats are: TIFF, TIF, JPG, JPEG, and PNG.
 
 ## Installation
 

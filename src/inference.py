@@ -1,5 +1,6 @@
 import argparse
 import logging
+import sys
 import time
 import warnings
 from pathlib import Path
@@ -19,7 +20,12 @@ from parameters import InferenceParameters, IOParameters
 import mlflow
 
 warnings.filterwarnings("ignore")
-logger = logging.getLogger("pytorch_lightning")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s: %(message)s",
+    stream=sys.stdout,  # Force all logs to stdout
+)
+logger = logging.getLogger(__name__)
 
 
 if __name__ == "__main__":
