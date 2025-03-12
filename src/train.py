@@ -17,8 +17,6 @@ from dataloaders import get_train_dataloaders
 from model import Autoencoder
 from parameters import IOParameters, TrainingParameters
 
-
-
 SEED = 42
 
 warnings.filterwarnings("ignore")
