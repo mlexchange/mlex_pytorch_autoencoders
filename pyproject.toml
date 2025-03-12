@@ -20,6 +20,8 @@ dependencies = [
     "torchvision==0.17.2",
     "pyFAI==2023.9.0",
     "pyyaml",
+    "mlflow",
+    "numpy<2"
 ]
 
 [tool.setuptools.packages]
