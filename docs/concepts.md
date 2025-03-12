@@ -13,7 +13,7 @@ definition of the following parameters:
 * Contrast: How much to jitter contrast.
 * Saturation: How much to jitter saturation.
 * Hue: How much to jitter hue.
-* Augmentation invariant: [Bool] Choose whether the target image is augmentation invariant. 
+* Augmentation invariant: [Bool] Choose whether the target image is augmentation invariant.
 * Log: [Bool] Apply log transformation
 * Percentiles: [List[int]] Apply percentile-normalization
 
@@ -30,9 +30,9 @@ increased per side in the network architecture.
 * Optimizer: A specific implementation of the gradient descent algorithm.
 * Criterion.
 * Learning Rate: A scalar used to train a model via gradient descent.
-* Number of Epochs: An epoch is a full training pass over the entire dataset such that 
+* Number of Epochs: An epoch is a full training pass over the entire dataset such that
 each image has been seen once.
-* Seed: Initialization reference for the pseudo-random number generator. Set up this value 
+* Seed: Initialization reference for the pseudo-random number generator. Set up this value
 for the reproduction of the results.
 * Number of workers: Number of workers for data loading
 
@@ -40,15 +40,15 @@ for the reproduction of the results.
 The output of the training step is the trained autoencoder.
 
 ## Prediction with pytorch_autoencoder
-To predict the reconstructed images of a given testing dataset, you can define the following 
+To predict the reconstructed images of a given inference dataset, you can define the following
 parameters:
 
-### Testing setup
+### Inference setup
 * Batch Size: The number of images in a batch.
-* Seed: Initialization reference for the pseudo-random number generator. Set up this value 
+* Seed: Initialization reference for the pseudo-random number generator. Set up this value
 for the reproduction of the results.
 
 Similarly to the training step, this approach will resize your dataset to the previously selected target width and height.
 
 ## Output
-The output of the prediction step is `f_vectors.parquet` with the feature vectors extracted from the testing dataset, and their corresponding reconstructed images at the output of the autoencoder.
+The output of the prediction step is `f_vectors.parquet` with the feature vectors extracted from the inference dataset, and their corresponding reconstructed images at the output of the autoencoder.

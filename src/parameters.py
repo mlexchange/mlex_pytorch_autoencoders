@@ -4,6 +4,40 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 
+class DataType(str, Enum):
+    tiled = "tiled"
+    file = "file"
+
+
+class DetectorSource(str, Enum):
+    pyFAI = "pyFAI"
+    tiled = "tiled"
+    file = "file"
+
+
+# TODO: Consider changing naming from detector to mask
+class IOParameters(BaseModel):
+    data_uris: List[str] = Field(description="directory containing the data")
+    data_type: DataType = Field(description="type of data")
+    root_uri: str = Field(description="root URI containing the data")
+    models_dir: str = Field(description="directory containing the model")
+    results_dir: str = Field(description="directory to save the results")
+    uid_save: str = Field(description="uid to save models, metrics and etc")
+    uid_retrieve: Optional[str] = Field(
+        description="optional, uid to retrieve models for inference"
+    )
+    data_tiled_api_key: Optional[str] = Field(description="API key for data tiled")
+    results_tiled_uri: str = Field(description="tiled uri to save results to")
+    results_tiled_api_key: Optional[str] = Field(description="tiled api key")
+    detector_uri: Optional[str] = Field(description="detector uri")
+    detector_source: Optional[DetectorSource] = Field(
+        description="detector source", default=DetectorSource.pyFAI
+    )
+    detector_tiled_api_key: Optional[str] = Field(
+        description="detector tiled api key", default=None
+    )
+
+
 class Optimizer(str, Enum):
     adadelta = "Adadelta"
     adagrad = "Adagrad"
@@ -46,37 +80,39 @@ class DataAugmentation(BaseModel):
     target_width: int = Field(description="data target width")
     target_height: int = Field(description="data target height")
     horz_flip_prob: Optional[float] = Field(
-        description="probability of the image being flipped \
-                                            horizontally"
+        description="probability of the image being flipped horizontally"
     )
     vert_flip_prob: Optional[float] = Field(
-        description="probability of the image being flipped \
-                                            vertically"
+        description="probability of the image being flipped vertically"
     )
     brightness: Optional[float] = Field(
-        description="how much to jitter brightness. brightness_factor \
-                                        is chosen uniformly from [max(0, 1 - brightness), 1 + brightness]"
+        description="how much to jitter brightness. brightness_factor is chosen uniformly from \
+            [max(0, 1 - brightness), 1 + brightness]"
     )
     contrast: Optional[float] = Field(
-        description="how much to jitter contrast. contrast_factor is \
-                                      chosen uniformly from [max(0, 1 - contrast), 1 + contrast]."
+        description="how much to jitter contrast. contrast_factor is chosen uniformly from \
+            [max(0, 1 - contrast), 1 + contrast]."
     )
     saturation: Optional[float] = Field(
-        description="how much to jitter saturation. saturation_factor \
-                                        is chosen uniformly from [max(0, 1 - saturation), 1 + saturation]. "
+        description="how much to jitter saturation. saturation_factor is chosen uniformly from \
+            [max(0, 1 - saturation), 1 + saturation]. "
     )
     hue: Optional[float] = Field(
-        description="how much to jitter hue. hue_factor is chosen uniformly \
-                                 from [-hue, hue]. Should have 0<= hue <= 0.5 or -0.5 <= min <= max \
-                                 <= 0.5. To jitter hue, the pixel values of the input image has to \
-                                 be non-negative for conversion to HSV space."
+        description="how much to jitter hue. hue_factor is chosen uniformly from [-hue, hue]. \
+            Should have 0<= hue <= 0.5 or -0.5 <= min <= max <= 0.5. To jitter hue, the pixel \
+            values of the input image has to be non-negative for conversion to HSV space."
     )
     augm_invariant: Optional[bool] = Field(
-        description="Ground truth changes (or not) according to \
-                                           selected transformations"
+        description="Ground truth changes (or not) according to selected transformations"
     )
-    log: Optional[bool] = False
-    percentiles: Optional[list] = [0, 100]
+    log: Optional[bool] = Field(description="log information")
+    detector_name: Optional[str] = Field(description="detector name")
+
+
+class Profiler(Enum):
+    simple = "simple"
+    advanced = "advanced"
+    none = None
 
 
 class TuningParameters(DataAugmentation):
@@ -91,12 +127,14 @@ class TuningParameters(DataAugmentation):
     learning_rate: float = Field(description="learning rate")
     seed: Optional[int] = Field(description="random seed")
     num_workers: Optional[int] = Field(description="number of workers")
+    profiler: Optional[Profiler] = None
 
 
 class TrainingParameters(TuningParameters):
     latent_dim: int = Field(description="latent space dimension")
     depth: int = Field(description="Network depth")
     base_channel_size: int = Field(description="number of base channels")
+    profiler: Optional[Profiler] = None
 
 
 class EvaluationParameters(TrainingParameters):
