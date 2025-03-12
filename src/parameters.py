@@ -36,6 +36,9 @@ class IOParameters(BaseModel):
     detector_tiled_api_key: Optional[str] = Field(
         description="detector tiled api key", default=None
     )
+    mlflow_uri: Optional[str] = Field(default="http://mlflow:5000", description="MLflow tracking uri (optional)")
+    mlflow_model: Optional[str] = Field(default=None, description="MLflow model name (optional)")
+
 
 
 class Optimizer(str, Enum):
@@ -145,3 +148,4 @@ class InferenceParameters(DataAugmentation):
     batch_size: int = Field(description="batch size")
     seed: Optional[int] = Field(description="random seed")
     num_workers: Optional[int] = Field(description="number of workers")
+    
