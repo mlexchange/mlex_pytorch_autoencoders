@@ -80,7 +80,6 @@ if __name__ == "__main__":
         model_name = io_parameters.uid_retrieve
     logger.info(f"Loading latest model from MLflow registry: {model_name}")
 
-
     model = mlflow.pytorch.load_model(f"models:/{model_name}/latest")
 
     # Get latent space representation of inference images and reconstructed images

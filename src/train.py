@@ -68,33 +68,38 @@ if __name__ == "__main__":
 
         # Set target size
         if train_parameters.target_width * train_parameters.target_height > 0:
-            target_size = (train_parameters.target_width, train_parameters.target_height)
+            target_size = (
+                train_parameters.target_width,
+                train_parameters.target_height,
+            )
         else:
             target_size = None
 
         # Get dataloaders
         logger.info(f"Number of workers: {train_parameters.num_workers}")
-        [train_loader, val_loader], (input_channels, width, height) = get_train_dataloaders(
-            io_parameters.data_uris,
-            io_parameters.root_uri,
-            io_parameters.data_type,
-            train_parameters.batch_size,
-            train_parameters.num_workers,
-            train_parameters.shuffle,
-            target_size,
-            train_parameters.horz_flip_prob,
-            train_parameters.vert_flip_prob,
-            train_parameters.brightness,
-            train_parameters.contrast,
-            train_parameters.saturation,
-            train_parameters.hue,
-            train_parameters.val_pct,
-            train_parameters.augm_invariant,
-            train_parameters.log,
-            data_tiled_api_key=io_parameters.data_tiled_api_key,
-            detector_uri=io_parameters.detector_uri,
-            detector_source=io_parameters.detector_source,
-            detector_tiled_api_key=io_parameters.detector_tiled_api_key,
+        [train_loader, val_loader], (input_channels, width, height) = (
+            get_train_dataloaders(
+                io_parameters.data_uris,
+                io_parameters.root_uri,
+                io_parameters.data_type,
+                train_parameters.batch_size,
+                train_parameters.num_workers,
+                train_parameters.shuffle,
+                target_size,
+                train_parameters.horz_flip_prob,
+                train_parameters.vert_flip_prob,
+                train_parameters.brightness,
+                train_parameters.contrast,
+                train_parameters.saturation,
+                train_parameters.hue,
+                train_parameters.val_pct,
+                train_parameters.augm_invariant,
+                train_parameters.log,
+                data_tiled_api_key=io_parameters.data_tiled_api_key,
+                detector_uri=io_parameters.detector_uri,
+                detector_source=io_parameters.detector_source,
+                detector_tiled_api_key=io_parameters.detector_tiled_api_key,
+            )
         )
 
         # Set up model directory
@@ -142,8 +147,8 @@ if __name__ == "__main__":
 
             # Save model to MLflow
             mlflow.pytorch.log_model(
-                model, 
-                "model",
-                registered_model_name=io_parameters.uid_save
+                model, "model", registered_model_name=io_parameters.uid_save
             )
-            logger.info(f"Training complete. Model saved to MLflow with model name: {io_parameters.uid_save}")
+            logger.info(
+                f"Training complete. Model saved to MLflow with model name: {io_parameters.uid_save}"
+            )
