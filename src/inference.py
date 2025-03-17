@@ -6,6 +6,7 @@ import warnings
 from pathlib import Path
 
 import einops
+import mlflow
 import numpy as np
 import pandas as pd
 import torch
@@ -38,6 +39,10 @@ if __name__ == "__main__":
     io_parameters = IOParameters.parse_obj(parameters["io_parameters"])
     inference_parameters = InferenceParameters.parse_obj(parameters["model_parameters"])
 
+    # Set up MLflow tracking URI
+    mlflow.set_tracking_uri(io_parameters.mlflow_uri)
+    logger.info(f"Setting MLflow tracking uri: {io_parameters.mlflow_uri}")
+
     # Set device
     device = (
         torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
@@ -68,10 +73,14 @@ if __name__ == "__main__":
         detector_tiled_api_key=io_parameters.detector_tiled_api_key,
     )
 
-    # Load model
-    model = Autoencoder.load_from_checkpoint(
-        f"{io_parameters.models_dir}/{io_parameters.uid_retrieve}/last.ckpt"
-    )
+    # Load latest model from the registry
+    if hasattr(io_parameters, "mlflow_model") and io_parameters.mlflow_model:
+        model_name = io_parameters.mlflow_model
+    else:
+        model_name = io_parameters.uid_retrieve
+    logger.info(f"Loading latest model from MLflow registry: {model_name}")
+
+    model = mlflow.pytorch.load_model(f"models:/{model_name}/latest")
 
     # Get latent space representation of inference images and reconstructed images
     start = time.time()
