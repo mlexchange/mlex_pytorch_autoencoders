@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     # Set up MLflow tracking URI
     mlflow.set_tracking_uri(io_parameters.mlflow_uri)
-    logger.info(f"Setting MLflow tracking uir: {io_parameters.mlflow_uri}")
+    logger.info(f"Setting MLflow tracking uri: {io_parameters.mlflow_uri}")
 
     # Set device
     device = (
