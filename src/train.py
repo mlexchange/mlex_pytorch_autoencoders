@@ -145,6 +145,8 @@ if __name__ == "__main__":
             trainer.fit(model, train_loader, val_loader)
             logger.info(f"Training time: {time.time()-start}")
 
+            # Log hyperparameters
+            mlflow.log_params(train_parameters.dict())
             # Save model to MLflow
             mlflow.pytorch.log_model(
                 model, "model", registered_model_name=io_parameters.uid_save
