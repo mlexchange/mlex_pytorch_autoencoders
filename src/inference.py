@@ -15,7 +15,6 @@ from PIL import Image
 
 from dataloaders import get_inference_dataloaders
 from helper_utils import embed_imgs, write_results
-from model import Autoencoder
 from parameters import InferenceParameters, IOParameters
 
 warnings.filterwarnings("ignore")
@@ -41,7 +40,7 @@ if __name__ == "__main__":
 
     # Set up MLflow tracking URI
     mlflow.set_tracking_uri(io_parameters.mlflow_uri)
-    logger.info(f"Setting MLflow tracking uir: {io_parameters.mlflow_uri}")
+    logger.info(f"Setting MLflow tracking uri: {io_parameters.mlflow_uri}")
 
     # Set device
     device = (
