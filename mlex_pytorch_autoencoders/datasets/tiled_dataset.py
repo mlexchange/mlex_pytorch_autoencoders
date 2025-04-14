@@ -19,6 +19,7 @@ class CustomTiledDataset(BaseDataset):
         augmentation: list,
         augm_invariant: Optional[bool] = False,
         log: Optional[bool] = False,
+        percentiles: Optional[list] = [0, 100],
         data_tiled_api_key: Optional[str] = None,
         detector_uri: Optional[str] = None,
         detector_source: Optional[str] = DetectorSource.PYFAI.value,
@@ -35,6 +36,7 @@ class CustomTiledDataset(BaseDataset):
             [transforms.Resize(target_size), transforms.ToTensor()]
         )
         self.log = log
+        self.percentiles = percentiles
         self.cum_sizes = []
         self._get_cumulative_sizes(sub_uris)
 
@@ -74,11 +76,14 @@ class CustomTiledDataset(BaseDataset):
             elif frame.shape[-1] == 1 or frame.shape[0] == 1:
                 frame = np.squeeze(frame)
 
+        low_perc, high_perc = self.percentiles
         # Apply log transform and/or percentile normalization
         frame = (
-            self._apply_log_transform(frame)
+            self._apply_log_transform(frame, low_perc=low_perc, high_perc=high_perc)
             if self.log
-            else self._normalize_percentiles(frame)
+            else self._normalize_percentiles(
+                frame, low_perc=low_perc, high_perc=high_perc
+            )
         )
 
         # Convert to PIL image and apply data augmentation

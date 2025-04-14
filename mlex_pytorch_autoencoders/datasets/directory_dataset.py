@@ -17,6 +17,7 @@ class CustomDirectoryDataset(BaseDataset):
         augmentation: list,
         augm_invariant: Optional[bool] = False,
         log: Optional[bool] = False,
+        percentiles: Optional[list] = [0, 100],
         detector_uri: Optional[str] = None,
         detector_source: Optional[str] = DetectorSource.PYFAI.value,
         detector_tiled_api_key: Optional[str] = None,
@@ -30,6 +31,7 @@ class CustomDirectoryDataset(BaseDataset):
             [transforms.Resize(target_size), transforms.ToTensor()]
         )
         self.log = log
+        self.percentiles = percentiles
 
     def __len__(self):
         return len(self.data)
@@ -50,21 +52,33 @@ class CustomDirectoryDataset(BaseDataset):
                 elif image.shape[-1] == 1 or image.shape[0] == 1:
                     image = np.squeeze(image)
 
+            low_perc, high_perc = self.percentiles
             # Apply log transform or percentile normalization
             image = (
-                self._apply_log_transform(image)
+                self._apply_log_transform(image, low_perc=low_perc, high_perc=high_perc)
                 if self.log
-                else self._normalize_percentiles(image)
+                else self._normalize_percentiles(
+                    image, low_perc=low_perc, high_perc=high_perc
+                )
             )
             image = Image.fromarray(image)
 
         else:
             # Non-TIFF or 8-bit TIFF => read with PIL
             # Convert to single-channel (L)
+            low_perc, high_perc = self.percentiles
             image = Image.open(file_path).convert("L")
             if self.log:
                 arr = np.array(image)  # convert to np for transformations
-                arr = self._apply_log_transform(arr)
+                arr = self._apply_log_transform(
+                    arr, low_perc=low_perc, high_perc=high_perc
+                )
+                image = Image.fromarray(arr)
+            else:
+                arr = np.array(image)
+                arr = self._normalize_percentiles(
+                    arr, low_perc=low_perc, high_perc=high_perc
+                )
                 image = Image.fromarray(arr)
 
         tensor_image = self.data_augmentation(image)
