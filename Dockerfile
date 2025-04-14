@@ -7,5 +7,5 @@ RUN pip install --upgrade pip
 RUN pip install .
 
 WORKDIR /app/work/
-COPY src/ src/
+COPY mlex_pytorch_autoencoders/ mlex_pytorch_autoencoders/
 CMD ["bash"]

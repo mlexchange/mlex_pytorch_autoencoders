@@ -8,13 +8,12 @@ from pathlib import Path
 import pytorch_lightning as pl
 import torch
 import yaml
+from dataloaders import get_train_dataloaders
 from dvclive import Live
 from dvclive.lightning import DVCLiveLogger
-from pytorch_lightning.callbacks import ModelCheckpoint
-
-from dataloaders import get_train_dataloaders
 from model import Autoencoder
 from parameters import IOParameters, TrainingParameters
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 SEED = 42
 
@@ -78,6 +77,7 @@ if __name__ == "__main__":
         train_parameters.val_pct,
         train_parameters.augm_invariant,
         train_parameters.log,
+        train_parameters.percentiles,
         data_tiled_api_key=io_parameters.data_tiled_api_key,
         detector_uri=io_parameters.detector_uri,
         detector_source=io_parameters.detector_source,

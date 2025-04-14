@@ -9,13 +9,12 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import yaml
+from dataloaders import get_train_dataloaders
 from dvclive import Live
 from dvclive.lightning import DVCLiveLogger
-from pytorch_lightning.callbacks import ModelCheckpoint
-
-from dataloaders import get_train_dataloaders
 from model import Autoencoder
 from parameters import IOParameters, TuningParameters
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 SEED = 42
 

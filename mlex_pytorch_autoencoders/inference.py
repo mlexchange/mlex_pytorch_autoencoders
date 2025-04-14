@@ -10,12 +10,11 @@ import numpy as np
 import pandas as pd
 import torch
 import yaml
-from PIL import Image
-
 from dataloaders import get_inference_dataloaders
 from helper_utils import embed_imgs, write_results
 from model import Autoencoder
 from parameters import InferenceParameters, IOParameters
+from PIL import Image
 
 warnings.filterwarnings("ignore")
 logging.basicConfig(
@@ -62,6 +61,7 @@ if __name__ == "__main__":
         inference_parameters.num_workers,
         target_size=target_size,
         log=inference_parameters.log,
+        percentiles=inference_parameters.percentiles,
         data_tiled_api_key=io_parameters.data_tiled_api_key,
         detector_uri=io_parameters.detector_uri,
         detector_source=io_parameters.detector_source,

@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [tool.setuptools.packages]
-find = { where = ["src"] }
+find = { where = ["mlex_pytorch_autoencoders"] }
 
 [project.optional-dependencies]
 # These are required for developing the package (running the tests, building

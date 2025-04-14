@@ -106,6 +106,9 @@ class DataAugmentation(BaseModel):
         description="Ground truth changes (or not) according to selected transformations"
     )
     log: Optional[bool] = Field(description="log information")
+    percentiles: Optional[List[float]] = Field(
+        description="percentiles to be used for normalization"
+    )
     detector_name: Optional[str] = Field(description="detector name")
 
 

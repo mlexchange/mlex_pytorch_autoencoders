@@ -1,16 +1,16 @@
 from typing import List, Optional, Tuple
 
 import torch
-from torch.utils.data import DataLoader
-
-from datasets.base_dataset import DetectorSource
-from datasets.directory_dataset import CustomDirectoryDataset
-from datasets.tiled_dataset import CustomTiledDataset
 from helper_utils import (
     filepaths_from_directory,
     setup_data_transformations,
     split_dataset,
 )
+from torch.utils.data import DataLoader
+
+from datasets.base_dataset import DetectorSource
+from datasets.directory_dataset import CustomDirectoryDataset
+from datasets.tiled_dataset import CustomTiledDataset
 
 
 def setup_dataloader(
@@ -50,6 +50,7 @@ def get_train_dataloaders(
     val_pct: float = 0.0,
     augm_invariant: bool = False,
     log: bool = False,
+    percentiles: Optional[List[float]] = [0, 100],
     data_tiled_api_key: Optional[str] = None,
     detector_uri: Optional[str] = None,
     detector_source: Optional[str] = DetectorSource.PYFAI.value,
@@ -74,6 +75,7 @@ def get_train_dataloaders(
             data_transform,
             augm_invariant=augm_invariant,
             log=log,
+            percentiles=percentiles,
             data_tiled_api_key=data_tiled_api_key,
             detector_uri=detector_uri,
             detector_source=detector_source,
@@ -87,6 +89,7 @@ def get_train_dataloaders(
             data_transform,
             augm_invariant=augm_invariant,
             log=log,
+            percentiles=percentiles,
             detector_uri=detector_uri,
             detector_source=detector_source,
             detector_tiled_api_key=detector_tiled_api_key,
@@ -128,6 +131,7 @@ def get_inference_dataloaders(
     num_workers: int,
     target_size: Optional[tuple] = None,
     log: bool = False,
+    percentiles: Optional[List[int]] = [0, 100],
     data_tiled_api_key: Optional[str] = None,
     detector_uri: Optional[str] = None,
     detector_source: Optional[str] = DetectorSource.PYFAI.value,
@@ -148,6 +152,7 @@ def get_inference_dataloaders(
             data_transform,
             augm_invariant=False,
             log=log,
+            percentiles=percentiles,
             data_tiled_api_key=data_tiled_api_key,
             detector_uri=detector_uri,
             detector_source=detector_source,
@@ -161,6 +166,7 @@ def get_inference_dataloaders(
             data_transform,
             augm_invariant=False,
             log=log,
+            percentiles=percentiles,
             detector_uri=detector_uri,
             detector_source=detector_source,
             detector_tiled_api_key=detector_tiled_api_key,
