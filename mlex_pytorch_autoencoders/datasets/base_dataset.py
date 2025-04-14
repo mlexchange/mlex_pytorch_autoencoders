@@ -70,7 +70,9 @@ class BaseDataset(Dataset):
         else:
             raise RuntimeError(f"Unexpected detector_source: {self.detector_source}")
 
-    def _apply_log_transform(self, image, threshold=0.000000000001) -> np.ndarray:
+    def _apply_log_transform(
+        self, image, threshold=0.000000000001, low_perc=1, high_perc=99
+    ) -> np.ndarray:
         # Mask negative, NaN values, and detector mask
         nan_img = np.isnan(image)
         img_neg = image < 0.0
@@ -87,13 +89,13 @@ class BaseDataset(Dataset):
         x = np.ma.array(image, mask=mask)
 
         # Normalize to [0, 1] and scale to [0, 255]
-        x = self._normalize_percentiles(x)
+        x = self._normalize_percentiles(x, low_perc, high_perc)
         return x
 
     @staticmethod
-    def _normalize_percentiles(x, low_perc=0.01, high_perc=99) -> np.ndarray:
+    def _normalize_percentiles(x, low_perc=1, high_perc=99) -> np.ndarray:
         """Normalize the input array to [0, 1] and scale to [0, 255]."""
-        low = np.percentile(x.ravel(), low_perc)
-        high = np.percentile(x.ravel(), high_perc)
+        low = np.nanpercentile(x.ravel(), low_perc)
+        high = np.nanpercentile(x.ravel(), high_perc)
         x = (np.clip((x - low) / (high - low), 0, 1) * 255).astype(np.uint8)
         return x
