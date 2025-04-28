@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 import sys
 import time
 import warnings
@@ -41,6 +42,8 @@ if __name__ == "__main__":
     train_parameters = TrainingParameters.parse_obj(parameters["model_parameters"])
 
     # Setup MLflow
+    os.environ['MLFLOW_TRACKING_USERNAME'] = io_parameters.mlflow_tracking_username
+    os.environ['MLFLOW_TRACKING_PASSWORD'] = io_parameters.mlflow_tracking_password
     mlflow.set_tracking_uri(io_parameters.mlflow_uri)
     logger.info(f"Setting MLflow tracking uri: {io_parameters.mlflow_uri}")
 
