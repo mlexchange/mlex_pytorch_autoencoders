@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import sys
+import tempfile
 import time
 import warnings
 from pathlib import Path
@@ -105,12 +106,14 @@ if __name__ == "__main__":
             )
         )
 
-        # Set up model directory
-        model_dir = Path(f"{io_parameters.models_dir}/{io_parameters.uid_save}")
-        model_dir.mkdir(parents=True, exist_ok=True)
+        # Set up model directory (changed to use temp directory)
+        model_dir = tempfile.mkdtemp(prefix=f"{io_parameters.uid_save}_")
+        logger.info(f"Using temporary directory: {model_dir}")
+        
+        dvclive_savepath = f"{model_dir}/dvc_metrics"
 
         # Set up dvclive
-        with Live(model_dir, report="html") as live:
+        with Live(dvclive_savepath, report="html") as live:
             trainer = pl.Trainer(
                 default_root_dir=model_dir,
                 gpus=1 if str(device).startswith("cuda") else 0,
@@ -150,6 +153,12 @@ if __name__ == "__main__":
 
             # Log hyperparameters
             mlflow.log_params(train_parameters.dict())
+
+            # Log DVC metrics to MLflow
+            if os.path.exists(dvclive_savepath):
+                mlflow.log_artifacts(dvclive_savepath, artifact_path="dvc_metrics")
+                logger.info(f"DVC metrics logged to MLflow from {dvclive_savepath}")
+
             # Save model to MLflow
             mlflow.pytorch.log_model(
                 model, "model", registered_model_name=io_parameters.uid_save
