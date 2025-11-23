@@ -109,7 +109,7 @@ if __name__ == "__main__":
         # Set up model directory (changed to use temp directory)
         model_dir = tempfile.mkdtemp(prefix=f"{io_parameters.uid_save}_")
         logger.info(f"Using temporary directory: {model_dir}")
-        
+
         dvclive_savepath = f"{model_dir}/dvc_metrics"
 
         # Set up dvclive

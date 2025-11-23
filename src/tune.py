@@ -76,33 +76,35 @@ if __name__ == "__main__":
             target_size = None
 
         # Get dataloaders
-        [train_loader, val_loader], (input_channels, width, height) = get_train_dataloaders(
-            io_parameters.data_uris,
-            io_parameters.root_uri,
-            io_parameters.data_type,
-            tune_parameters.batch_size,
-            tune_parameters.num_workers,
-            tune_parameters.shuffle,
-            target_size,
-            tune_parameters.horz_flip_prob,
-            tune_parameters.vert_flip_prob,
-            tune_parameters.brightness,
-            tune_parameters.contrast,
-            tune_parameters.saturation,
-            tune_parameters.hue,
-            tune_parameters.val_pct,
-            tune_parameters.augm_invariant,
-            tune_parameters.log,
-            data_tiled_api_key=io_parameters.data_tiled_api_key,
-            detector_uri=io_parameters.detector_uri,
-            detector_source=io_parameters.detector_source,
-            detector_tiled_api_key=io_parameters.detector_tiled_api_key,
+        [train_loader, val_loader], (input_channels, width, height) = (
+            get_train_dataloaders(
+                io_parameters.data_uris,
+                io_parameters.root_uri,
+                io_parameters.data_type,
+                tune_parameters.batch_size,
+                tune_parameters.num_workers,
+                tune_parameters.shuffle,
+                target_size,
+                tune_parameters.horz_flip_prob,
+                tune_parameters.vert_flip_prob,
+                tune_parameters.brightness,
+                tune_parameters.contrast,
+                tune_parameters.saturation,
+                tune_parameters.hue,
+                tune_parameters.val_pct,
+                tune_parameters.augm_invariant,
+                tune_parameters.log,
+                data_tiled_api_key=io_parameters.data_tiled_api_key,
+                detector_uri=io_parameters.detector_uri,
+                detector_source=io_parameters.detector_source,
+                detector_tiled_api_key=io_parameters.detector_tiled_api_key,
+            )
         )
 
         # Define model and results directory (changed to use temp directory)
         output_dir = tempfile.mkdtemp(prefix=f"{io_parameters.uid_save}_tune_")
         logger.info(f"Using temporary directory: {output_dir}")
-        
+
         dvclive_savepath = f"{output_dir}/dvc_metrics"
         model_dir = output_dir
 
