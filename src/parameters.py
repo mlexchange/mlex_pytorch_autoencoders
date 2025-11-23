@@ -20,13 +20,19 @@ class IOParameters(BaseModel):
     data_uris: List[str] = Field(description="directory containing the data")
     data_type: DataType = Field(description="type of data")
     root_uri: str = Field(description="root URI containing the data")
-    models_dir: str = Field(description="directory containing the model")
-    results_dir: str = Field(description="directory to save the results")
+    models_dir: Optional[str] = Field(
+        default=None, description="directory containing the model"
+    )
+    results_dir: Optional[str] = Field(
+        default=None, description="directory to save the results"
+    )
     uid_save: str = Field(description="uid to save models, metrics and etc")
     uid_retrieve: Optional[str] = Field(
         description="optional, uid to retrieve models for inference"
     )
-    data_tiled_api_key: Optional[str] = Field(description="API key for data tiled")
+    data_tiled_api_key: Optional[str] = Field(
+        default=None, description="API key for data tiled"
+    )
     results_tiled_uri: str = Field(description="tiled uri to save results to")
     results_tiled_api_key: Optional[str] = Field(description="tiled api key")
     detector_uri: Optional[str] = Field(description="detector uri")
@@ -35,6 +41,18 @@ class IOParameters(BaseModel):
     )
     detector_tiled_api_key: Optional[str] = Field(
         description="detector tiled api key", default=None
+    )
+    mlflow_uri: Optional[str] = Field(
+        default="http://mlflow:5000", description="MLflow tracking uri (optional)"
+    )
+    mlflow_tracking_username: Optional[str] = Field(
+        default="admin", description="MLflow tracking username (optional)"
+    )
+    mlflow_tracking_password: Optional[str] = Field(
+        default="passwd", description="MLflow tracking password (optional)"
+    )
+    mlflow_model: Optional[str] = Field(
+        default=None, description="MLflow model name (optional)"
     )
 
 

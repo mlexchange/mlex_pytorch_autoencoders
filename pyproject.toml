@@ -18,8 +18,10 @@ dependencies = [
     "tifffile",
     "tiled[client]==0.1.0a118",
     "torchvision==0.17.2",
-    "pyFAI==2023.9.0",
+    "pyFAI==2025.3.0",
     "pyyaml",
+    "mlflow",
+    "numpy<2"
 ]
 
 [tool.setuptools.packages]
